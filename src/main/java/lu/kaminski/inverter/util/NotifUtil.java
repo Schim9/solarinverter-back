@@ -1,6 +1,7 @@
 package lu.kaminski.inverter.util;
 
 import lombok.extern.log4j.Log4j2;
+import lu.kaminski.inverter.common.AppConfig;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.utils.URIBuilder;
@@ -15,7 +16,6 @@ public class NotifUtil {
 
     public static void sendPushBulletNotif(String message, String title) {
         log.debug("Send a notification to PushBullet: [" + message + "]");
-        String apiKey = "o.yB7cAS6FLG97cZMOtnHxotKufYHgqEoe";
 
         HttpClient httpClient = HttpClientBuilder.create().build();
         URIBuilder builder = null;
@@ -24,7 +24,7 @@ public class NotifUtil {
             URI uri = builder.build();
 
             HttpPost post = new HttpPost(uri);
-            post.addHeader("Access-Token", apiKey);
+            post.addHeader("Access-Token", AppConfig.pushBulletAPIKey);
             post.addHeader("Content-Type", "application/json");
             StringEntity params =new StringEntity("{\"body\":\""+message+"\", " +
                     "\"info\":\"" + title + "\"," +
