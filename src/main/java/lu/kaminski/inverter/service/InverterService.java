@@ -5,7 +5,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import lombok.extern.log4j.Log4j2;
-import lu.kaminski.inverter.common.AppConfig;
+import lu.kaminski.inverter.config.properties.InverterProperties;
 import lu.kaminski.inverter.model.rest.ProdRestModel;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -14,6 +14,7 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -29,15 +30,18 @@ import java.util.List;
 @Component
 public class InverterService {
 
-    public ProdRestModel getLiveData() throws Exception {
+    @Autowired
+    private InverterProperties inverterProperties;
+
+    public ProdRestModel getLiveData() {
         log.debug("getLiveData from [" + LocalDateTime.now() + "]");
         try {
             HttpClient httpClient = HttpClientBuilder.create().build();
-            URIBuilder builder = new URIBuilder(AppConfig.inverterAddress + "/v1/livedata");
+            URIBuilder builder = new URIBuilder(inverterProperties.getUrl() + "/v1/livedata");
             URI uri = builder.build();
             HttpGet getRequest = new HttpGet(uri);
 
-            getRequest.addHeader("Authorization", "Basic " + AppConfig.authenticationToken);
+            getRequest.addHeader("Authorization", "Basic " + inverterProperties.getToken());
 
             HttpResponse response = httpClient.execute(getRequest);
             HttpEntity entity = response.getEntity();
@@ -58,29 +62,21 @@ public class InverterService {
                 for (int i = 0; i < tab.size(); i++) {
                     JsonElement element = tab.get(i);
                     switch (((JsonObject) element).get("name").getAsString()) {
-                        case "E0_runtime":
-                            e0_runtime = ((JsonObject) element).get("value").getAsString();
-                            break;
-                        case "E0_7D":
-                            e0_7D = ((JsonObject) element).get("value").getAsString();
-                            break;
-                        case "E0_30D":
-                            e0_30D = ((JsonObject) element).get("value").getAsString();
-                            break;
-                        case "E0_1Y":
-                            e0_1Y = ((JsonObject) element).get("value").getAsString();
-                            break;
-                        default:
-                            break;
+                        case "E0_runtime" -> e0_runtime = ((JsonObject) element).get("value").getAsString();
+                        case "E0_7D" -> e0_7D = ((JsonObject) element).get("value").getAsString();
+                        case "E0_30D" -> e0_30D = ((JsonObject) element).get("value").getAsString();
+                        case "E0_1Y" -> e0_1Y = ((JsonObject) element).get("value").getAsString();
+                        default -> {
+                        }
                     }
                 }
             }
             return ProdRestModel.builder()
                     .date(LocalDate.now().toString())
-                    .dayProd(new BigDecimal(e0_runtime).divide(new BigDecimal(1000)))
-                    .weekProd(new BigDecimal(e0_7D).divide(new BigDecimal(1000)))
-                    .monthProd(new BigDecimal(e0_30D).divide(new BigDecimal(1000)))
-                    .yearProd(new BigDecimal(e0_1Y).divide(new BigDecimal(1000)))
+                    .dayProd(new BigDecimal(e0_runtime).divide(new BigDecimal(1000), RoundingMode.UNNECESSARY))
+                    .weekProd(new BigDecimal(e0_7D).divide(new BigDecimal(1000), RoundingMode.UNNECESSARY))
+                    .monthProd(new BigDecimal(e0_30D).divide(new BigDecimal(1000), RoundingMode.UNNECESSARY))
+                    .yearProd(new BigDecimal(e0_1Y).divide(new BigDecimal(1000), RoundingMode.UNNECESSARY))
                     .build();
         } catch (SocketException se) {
             log.warn("Error while reaching inverter", se);
@@ -101,7 +97,7 @@ public class InverterService {
         List<ProdRestModel> myList = new ArrayList<>();
         try {
             HttpClient httpClient = HttpClientBuilder.create().build();
-            URIBuilder builder = new URIBuilder(AppConfig.inverterAddress + "/v1/feeds/" +
+            URIBuilder builder = new URIBuilder(inverterProperties.getUrl() + "/v1/feeds/" +
                     "?client=queryND" +
                     "&feedList[]=E0_runtime" +
                     "&interval=1day" +
@@ -110,7 +106,7 @@ public class InverterService {
             URI uri = builder.build();
             HttpGet getRequest = new HttpGet(uri);
 
-            getRequest.addHeader("Authorization", "Basic " + AppConfig.authenticationToken);
+            getRequest.addHeader("Authorization", "Basic " + inverterProperties.getToken());
 
 
             HttpResponse response = httpClient.execute(getRequest);
@@ -134,7 +130,7 @@ public class InverterService {
                     ProdRestModel prod = ProdRestModel.builder()
                             // Convert timestamp to date
                             .date(timestamp.substring(1, 11))
-                            .value(new BigDecimal(valueStr).divide(new BigDecimal(1000)))
+                            .value(new BigDecimal(valueStr).divide(new BigDecimal(1000), RoundingMode.CEILING))
                             .build();
                     myList.add(prod);
                 }
@@ -159,7 +155,7 @@ public class InverterService {
 
         try {
             HttpClient httpClient = HttpClientBuilder.create().build();
-            URIBuilder builder = new URIBuilder(AppConfig.inverterAddress + "/v1/feeds/" +
+            URIBuilder builder = new URIBuilder(inverterProperties.getUrl() + "/v1/feeds/" +
                     "?client=query1D" +
                     "feedList[]=Pin" +
                     "&maxDataPointsPerPage=1440" +
@@ -168,7 +164,7 @@ public class InverterService {
             URI uri = builder.build();
             HttpGet getRequest = new HttpGet(uri);
 
-            getRequest.addHeader("Authorization", "Basic " + AppConfig.authenticationToken);
+            getRequest.addHeader("Authorization", "Basic " + inverterProperties.getToken());
 
 
             HttpResponse response = httpClient.execute(getRequest);

@@ -21,15 +21,8 @@ import java.util.Properties;
 public class AppConfig {
 
 
-    public static String inverterAddress = "http://192.68.0.105";
-    // public static String inverterAddress = "http://fimer.kaminski.lu";
-    @Value("${inverter.token}")
-    public static String authenticationToken;
-    @Value("${pushbullet.api-key}")
-    public static String pushBulletAPIKey;
-
     @Bean
-    public FilterRegistrationBean corsFilter() {
+    public FilterRegistrationBean<?> corsFilter() {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
@@ -37,7 +30,7 @@ public class AppConfig {
         config.setAllowedHeaders(ImmutableList.of("*"));
         config.setAllowedMethods(ImmutableList.of("*"));
         source.registerCorsConfiguration("/**", config);
-        FilterRegistrationBean bean = new FilterRegistrationBean(new CorsFilter(source));
+        FilterRegistrationBean<?> bean = new FilterRegistrationBean<>(new CorsFilter(source));
         bean.setOrder(Ordered.HIGHEST_PRECEDENCE);
         return bean;
     }

@@ -12,8 +12,6 @@ import java.util.List;
 @Transactional
 public interface HourlyProdDAO extends CrudRepository<HourlyProdEntity, Long> {
 
-    List<HourlyProdEntity> findAll();
-
     @Query("SELECT p FROM HourlyProdEntity p " +
             "WHERE (p.date) >= :startDate " +
             "AND (p.date) <= :endDate " +

@@ -8,8 +8,6 @@ import lu.kaminski.inverter.model.entity.HourlyProdEntity;
 import lu.kaminski.inverter.model.rest.ProdRestModel;
 import lu.kaminski.inverter.util.NotifUtil;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -30,11 +28,17 @@ public class SyncService {
     private HourlyProdDAO hourlyProdDAO;
     @Autowired
     private InverterService inverterService;
+    @Autowired
+    private NotifUtil notifUtil;
 
     @Scheduled(cron = "${schedule.task.syncProductionData}")
-    public void syncProductionData() {
+    public void syncDataForPreviousDays() {
+        syncProductionData(5L);
+    }
+
+    public void syncProductionData(Long nbDays ) {
         LocalDate endDate = LocalDate.now();
-        LocalDate startDate = endDate.minusDays(5);
+        LocalDate startDate = endDate.minusDays(nbDays);
 
         log.info("Sync data from [" + startDate + "] to [" + endDate + " ]");
         try {
@@ -48,19 +52,19 @@ public class SyncService {
 
                 // Send a notification in case nothing has been produced
                 if (p.getValue().equals(BigDecimal.ZERO)) {
-                    NotifUtil.sendPushBulletNotif("No production for " + p.getDate(), "WARNING");
+                    notifUtil.sendPushBulletNotif("No production for " + p.getDate(), "WARNING");
                 }
                 if (p.getValue().compareTo(BigDecimal.ONE) < 0) {
-                    NotifUtil.sendPushBulletNotif("Production is low for " + p.getDate(), "WARNING");
+                    notifUtil.sendPushBulletNotif("Production is low for " + p.getDate(), "WARNING");
                 }
 
                 return dpe;
             }).collect(Collectors.toList());
             dailyProdDAO.saveAll(result);
-            NotifUtil.sendPushBulletNotif("DailyProd Data synchronized", "INFO");
+            notifUtil.sendPushBulletNotif("DailyProd Data synchronized", "INFO");
         } catch (Exception e) {
             log.error("Error during sync for dailyProd", e);
-            NotifUtil.sendPushBulletNotif(e.getMessage(), "ERROR");
+            notifUtil.sendPushBulletNotif(e.getMessage(), "ERROR");
         }
     }
 
@@ -80,10 +84,10 @@ public class SyncService {
                 return hpe;
             }).collect(Collectors.toList());
             hourlyProdDAO.saveAll(result);
-            NotifUtil.sendPushBulletNotif("HourlyProd Data synchronized", "INFO");
+            notifUtil.sendPushBulletNotif("HourlyProd Data synchronized", "INFO");
         } catch (Exception e) {
             log.error("Error during sync for hourlyProd", e);
-            NotifUtil.sendPushBulletNotif(e.getMessage(), "ERROR");
+            notifUtil.sendPushBulletNotif(e.getMessage(), "ERROR");
         }
     }
 
@@ -98,7 +102,7 @@ public class SyncService {
             if (Optional.ofNullable(liveData.getDayProd())
                     .map(p -> p.compareTo(currentDayProd.getValue()) == 0)
                     .orElse(false)) {
-                NotifUtil.sendPushBulletNotif("Production did not change since last sync.", "WARNING");
+                notifUtil.sendPushBulletNotif("Production did not change since last sync.", "WARNING");
             }
 
             if (Optional.ofNullable(liveData.getDayProd()).isPresent()){
@@ -114,7 +118,7 @@ public class SyncService {
             return liveData;
         } catch (Exception e) {
             log.error("Error while getting livedata", e);
-            NotifUtil.sendPushBulletNotif(e.getMessage(), "ERROR");
+            notifUtil.sendPushBulletNotif(e.getMessage(), "ERROR");
         }
         // In case there is no data, the function returns an empty object
         return new ProdRestModel();

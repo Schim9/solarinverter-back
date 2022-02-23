@@ -1,0 +1,19 @@
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/inverter?serverTimezone=UTC
+    username: root
+    password:
+
+inverter:
+  url:
+  token:
+
+pushbullet:
+  api-key:
+
+#Schedule task cron - every day at 10am
+schedule.task:
+  syncProductionData: 0 0 10 * * *
+  syncProductionDataForOneDay: 0 0 9 * * *
+
+logging.level.lu.kaminski: DEBUG
