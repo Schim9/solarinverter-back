@@ -31,7 +31,7 @@ public class MainController {
     private SyncService syncService;
 
     /**
-     * GET /
+     * Health Check and status /
      */
     @RequestMapping(value = "/status", method = RequestMethod.GET)
     public ResponseEntity<?> status() {
@@ -47,7 +47,7 @@ public class MainController {
     }
 
     /**
-     * GET /
+     * Return records from database
      */
     @RequestMapping(value = "/daily-prod", method = RequestMethod.GET, produces = "application/json")
     public ResponseEntity<?> getDailyProd(@RequestParam Map<String, String> customQuery) {
@@ -62,7 +62,7 @@ public class MainController {
     }
 
     /**
-     * GET /
+     * Deprecated / Return real time production
      */
     @RequestMapping(value = "/real-time", method = RequestMethod.GET, produces = "application/json")
     public ResponseEntity<?> getRealTimeProd(@RequestParam Map<String, String> customQuery) {
@@ -71,7 +71,7 @@ public class MainController {
     }
 
     /**
-     * GET /
+     * Will retrieve data from inverter and data from database
      */
     @RequestMapping(value = "/livedata", method = RequestMethod.GET, produces = "application/json")
     public ResponseEntity<?> getLiveData() {
@@ -87,7 +87,7 @@ public class MainController {
     }
 
     /**
-     * GET /
+     * SYNC DATA FROM INVERTER /
      */
     @RequestMapping(value = "/update", method = RequestMethod.GET, produces = "application/json")
     public ResponseEntity<?> updateProd(@RequestParam Map<String, String> customQuery) {
