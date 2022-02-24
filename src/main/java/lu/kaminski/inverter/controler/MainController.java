@@ -42,7 +42,6 @@ public class MainController {
     @RequestMapping(value = "/inverter-status", method = RequestMethod.GET, produces = "application/json")
     public ResponseEntity<?> checkInverterStatus() {
         log.debug("in checkInverterStatus");
-
         syncService.checkInverterStatus();
         return ResponseEntity.ok("check has been triggered");
     }
@@ -94,7 +93,6 @@ public class MainController {
     public ResponseEntity<?> updateProd(@RequestParam Map<String, String> customQuery) {
         String nbDays = customQuery.getOrDefault("nbDays", "5");
         log.debug("in updateProd");
-
         syncService.syncProductionData(Long.valueOf(nbDays));
         return ResponseEntity.ok("ok");
     }

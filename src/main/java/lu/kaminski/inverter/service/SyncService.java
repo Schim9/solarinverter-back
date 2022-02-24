@@ -32,18 +32,24 @@ public class SyncService {
     private NotifUtil notifUtil;
 
     @Scheduled(cron = "${schedule.task.syncProductionData}")
-    public void syncDataForPreviousDays() {
+    public void schedulerSyncDataForPreviousDays() {
+        log.info("[SCHEDULER] Sync data for previous days");
         syncProductionData(5L);
     }
 
     @Scheduled(cron = "${schedule.task.checkInverterStatus}")
+    public void schedulerCheckInverterStatus() {
+        log.info("[SCHEDULER] Check inverter status");
+        checkInverterStatus();
+    }
+
     public void checkInverterStatus() {
         log.info("Checking inverter status");
         try {
             ProdRestModel liveData = inverterService.getLiveData();
             // Send a notification in case nothing has been produced
             if (liveData.getDayProd().equals(BigDecimal.ZERO)) {
-                notifUtil.sendPushBulletNotif("Something is wrong with the inverter", "WARNING");
+                notifUtil.sendPushBulletNotif("Production is near 0", "WARNING");
             }
             else {
                 notifUtil.sendPushBulletNotif("The inverter is online", "INFO");
