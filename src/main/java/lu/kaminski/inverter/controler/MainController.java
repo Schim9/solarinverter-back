@@ -39,6 +39,14 @@ public class MainController {
         return ResponseEntity.ok("App is up on " + LocalDateTime.now() + ".");
     }
 
+    @RequestMapping(value = "/inverter-status", method = RequestMethod.GET, produces = "application/json")
+    public ResponseEntity<?> checkInverterStatus() {
+        log.debug("in checkInverterStatus");
+
+        syncService.checkInverterStatus();
+        return ResponseEntity.ok("check has been triggered");
+    }
+
     /**
      * GET /
      */
@@ -90,6 +98,4 @@ public class MainController {
         syncService.syncProductionData(Long.valueOf(nbDays));
         return ResponseEntity.ok("ok");
     }
-
-
 }

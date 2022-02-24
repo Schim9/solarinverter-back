@@ -73,10 +73,10 @@ public class InverterService {
             }
             return ProdRestModel.builder()
                     .date(LocalDate.now().toString())
-                    .dayProd(new BigDecimal(e0_runtime).divide(new BigDecimal(1000), RoundingMode.UNNECESSARY))
-                    .weekProd(new BigDecimal(e0_7D).divide(new BigDecimal(1000), RoundingMode.UNNECESSARY))
-                    .monthProd(new BigDecimal(e0_30D).divide(new BigDecimal(1000), RoundingMode.UNNECESSARY))
-                    .yearProd(new BigDecimal(e0_1Y).divide(new BigDecimal(1000), RoundingMode.UNNECESSARY))
+                    .dayProd(new BigDecimal(e0_runtime).divide(new BigDecimal(1000), RoundingMode.CEILING))
+                    .weekProd(new BigDecimal(e0_7D).divide(new BigDecimal(1000), RoundingMode.CEILING))
+                    .monthProd(new BigDecimal(e0_30D).divide(new BigDecimal(1000), RoundingMode.CEILING))
+                    .yearProd(new BigDecimal(e0_1Y).divide(new BigDecimal(1000), RoundingMode.CEILING))
                     .build();
         } catch (SocketException se) {
             log.warn("Error while reaching inverter", se);

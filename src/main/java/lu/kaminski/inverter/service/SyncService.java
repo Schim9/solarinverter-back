@@ -36,6 +36,25 @@ public class SyncService {
         syncProductionData(5L);
     }
 
+    @Scheduled(cron = "${schedule.task.checkInverterStatus}")
+    public void checkInverterStatus() {
+        log.info("Checking inverter status");
+        try {
+            ProdRestModel liveData = inverterService.getLiveData();
+            // Send a notification in case nothing has been produced
+            if (liveData.getDayProd().equals(BigDecimal.ZERO)) {
+                notifUtil.sendPushBulletNotif("Something is wrong with the inverter", "WARNING");
+            }
+            else {
+                notifUtil.sendPushBulletNotif("The inverter is online", "INFO");
+            }
+        } catch (Exception e) {
+            log.error("Error during checking inverter status", e);
+            notifUtil.sendPushBulletNotif(e.getMessage(), "ERROR");
+            notifUtil.sendPushBulletNotif("Something is wrong with the inverter", "WARNING");
+        }
+    }
+
     public void syncProductionData(Long nbDays ) {
         LocalDate endDate = LocalDate.now();
         LocalDate startDate = endDate.minusDays(nbDays);
@@ -68,7 +87,7 @@ public class SyncService {
         }
     }
 
-    @Scheduled(cron = "${schedule.task.syncProductionDataForOneDay}")
+    // @Scheduled(cron = "${schedule.task.syncProductionDataForOneDay}")
     public void syncProductionDataForOneDay() {
         // Will get data for the day before
         LocalDate day = LocalDate.now().minusDays(1);
@@ -97,24 +116,35 @@ public class SyncService {
             ProdRestModel liveData = inverterService.getLiveData();
 
             // Get latest data for current day
-            //FIXME Handle case there is nothing in DB
-            DailyProdEntity currentDayProd = dailyProdDAO.findByDate(LocalDate.now(), LocalDate.now()).get(0);
-            if (Optional.ofNullable(liveData.getDayProd())
-                    .map(p -> p.compareTo(currentDayProd.getValue()) == 0)
-                    .orElse(false)) {
-                notifUtil.sendPushBulletNotif("Production did not change since last sync.", "WARNING");
-            }
+            Optional<DailyProdEntity> storedCurrentDayProd = dailyProdDAO.findByDate(LocalDate.now(), LocalDate.now())
+                    .stream()
+                    .findFirst();
 
-            if (Optional.ofNullable(liveData.getDayProd()).isPresent()){
+            // If there is some value stored in DB, we compare it to the up to date received data
+            storedCurrentDayProd.ifPresent(currentDayProd -> {
+                if (Optional.ofNullable(liveData.getDayProd())
+                        .map(p -> p.compareTo(currentDayProd.getValue()) == 0)
+                        .orElse(false)) {
+                    notifUtil.sendPushBulletNotif("Production did not change since last sync.", "WARNING");
+                }
+            });
+
+            // Process live data
+            Optional.ofNullable(liveData.getDayProd()).ifPresentOrElse( upToDateData -> {
                 // Update production data for current day
                 DailyProdEntity dpe = new DailyProdEntity();
                 dpe.setDate(LocalDate.now());
-                dpe.setValue(liveData.getDayProd());
+                dpe.setValue(upToDateData);
                 dailyProdDAO.save(dpe);
-            } else {
-                // No refreshed data... Return the one retrieved from database
-                liveData.setValue(currentDayProd.getValue());
-            }
+            }, () -> {
+                // No refreshed data... Return the one retrieved from database in case it exists
+                liveData.setValue(
+                        storedCurrentDayProd
+                                .map(DailyProdEntity::getValue)
+                                .orElse(BigDecimal.ZERO)
+                );
+            });
+
             return liveData;
         } catch (Exception e) {
             log.error("Error while getting livedata", e);
