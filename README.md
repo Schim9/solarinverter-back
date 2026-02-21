@@ -58,7 +58,7 @@ CORS allowed origins: `https://solar-app.kaminski.lu`, `http://localhost:4200`
 | GET | `/api/status` | Health check |
 | GET | `/api/inverter-status` | Trigger inverter status check + notification |
 | GET | `/api/daily-prod?start=YYYY-MM-DD&end=YYYY-MM-DD` | Historical production from DB |
-| GET | `/api/livedata` | Live data from inverter + sync to DB. Response includes `contractProd` (kWh produced since last contract anniversary date) |
+| GET | `/api/livedata` | Live data from inverter + sync to DB. Response includes `contractProd` (kWh produced since last contract anniversary date) and `contractStartDate` (date of the last anniversary, `YYYY-MM-DD`) |
 | GET | `/api/update?nbDays=5` | Manual sync (default: last 5 days) |
 | POST | `/shutdownContext` | Graceful application shutdown |
 
