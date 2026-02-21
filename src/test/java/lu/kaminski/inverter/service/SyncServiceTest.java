@@ -1,9 +1,11 @@
 package lu.kaminski.inverter.service;
 
+import lu.kaminski.inverter.config.properties.ContractProperties;
 import lu.kaminski.inverter.dao.DailyProdDAO;
 import lu.kaminski.inverter.model.entity.DailyProdEntity;
 import lu.kaminski.inverter.model.rest.ProdRestModel;
 import lu.kaminski.inverter.util.NotifUtil;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -34,8 +36,63 @@ class SyncServiceTest {
     @Mock
     private NotifUtil notifUtil;
 
+    @Mock
+    private DataService dataService;
+
+    @Mock
+    private ContractProperties contractProperties;
+
     @InjectMocks
     private SyncService syncService;
+
+    @BeforeEach
+    void setUp() {
+        // Default contract anniversary: 25 January (lenient: not all tests use contractProperties)
+        lenient().when(contractProperties.getAnniversaryDay()).thenReturn(25);
+        lenient().when(contractProperties.getAnniversaryMonth()).thenReturn(1);
+    }
+
+    // --- getLastAnniversaryDate ---
+
+    @Test
+    void getLastAnniversaryDate_returnsThisYear_whenAnniversaryAlreadyPassed() {
+        // Today is 21 Feb 2026, anniversary is 25 Jan → already passed → 2026-01-25
+        LocalDate result = syncService.getLastAnniversaryDate(LocalDate.of(2026, 2, 21));
+
+        assertThat(result).isEqualTo(LocalDate.of(2026, 1, 25));
+    }
+
+    @Test
+    void getLastAnniversaryDate_returnsLastYear_whenAnniversaryNotYetReached() {
+        // Today is 10 Jan 2026, anniversary is 25 Jan → not yet reached → 2025-01-25
+        LocalDate result = syncService.getLastAnniversaryDate(LocalDate.of(2026, 1, 10));
+
+        assertThat(result).isEqualTo(LocalDate.of(2025, 1, 25));
+    }
+
+    @Test
+    void getLastAnniversaryDate_returnsToday_whenTodayIsAnniversary() {
+        // Today IS the anniversary date → return this year's date
+        LocalDate result = syncService.getLastAnniversaryDate(LocalDate.of(2026, 1, 25));
+
+        assertThat(result).isEqualTo(LocalDate.of(2026, 1, 25));
+    }
+
+    @Test
+    void getLastAnniversaryDate_handlesEndOfYear() {
+        // Today is 31 Dec 2026, anniversary is 25 Jan → already passed → 2026-01-25
+        LocalDate result = syncService.getLastAnniversaryDate(LocalDate.of(2026, 12, 31));
+
+        assertThat(result).isEqualTo(LocalDate.of(2026, 1, 25));
+    }
+
+    @Test
+    void getLastAnniversaryDate_handlesStartOfYear() {
+        // Today is 1 Jan 2026, anniversary is 25 Jan → not yet reached → 2025-01-25
+        LocalDate result = syncService.getLastAnniversaryDate(LocalDate.of(2026, 1, 1));
+
+        assertThat(result).isEqualTo(LocalDate.of(2025, 1, 25));
+    }
 
     // --- checkInverterStatus ---
 

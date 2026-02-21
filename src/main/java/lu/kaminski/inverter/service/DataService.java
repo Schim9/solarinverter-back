@@ -7,6 +7,7 @@ import lu.kaminski.inverter.model.rest.ProdRestModel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -26,5 +27,12 @@ public class DataService {
                 .value(r.getValue())
                 .build()).collect(Collectors.toList());
         return result;
+    }
+
+    public BigDecimal getProductionSince(LocalDate from) {
+        log.debug("getProductionSince [" + from + "]");
+        return dailyProdDAO.findByDate(from, LocalDate.now()).stream()
+                .map(DailyProdEntity::getValue)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 }

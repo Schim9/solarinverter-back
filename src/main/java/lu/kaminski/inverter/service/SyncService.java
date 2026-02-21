@@ -1,6 +1,7 @@
 package lu.kaminski.inverter.service;
 
 import lombok.extern.log4j.Log4j2;
+import lu.kaminski.inverter.config.properties.ContractProperties;
 import lu.kaminski.inverter.dao.DailyProdDAO;
 import lu.kaminski.inverter.model.entity.DailyProdEntity;
 import lu.kaminski.inverter.model.rest.ProdRestModel;
@@ -25,6 +26,10 @@ public class SyncService {
     private InverterService inverterService;
     @Autowired
     private NotifUtil notifUtil;
+    @Autowired
+    private DataService dataService;
+    @Autowired
+    private ContractProperties contractProperties;
 
     @Scheduled(cron = "${schedule.task.syncProductionData}")
     public void schedulerSyncDataForPreviousDays() {
@@ -88,6 +93,15 @@ public class SyncService {
         }
     }
 
+    LocalDate getLastAnniversaryDate(LocalDate today) {
+        LocalDate anniversaryThisYear = LocalDate.of(today.getYear(),
+                contractProperties.getAnniversaryMonth(),
+                contractProperties.getAnniversaryDay());
+        return anniversaryThisYear.isAfter(today)
+                ? anniversaryThisYear.minusYears(1)
+                : anniversaryThisYear;
+    }
+
     public ProdRestModel getAndSyncLiveData() {
         try {
             // Get live data
@@ -122,6 +136,11 @@ public class SyncService {
                                 .orElse(BigDecimal.ZERO)
                 );
             });
+
+            // Add production since contract anniversary date
+            LocalDate anniversaryDate = getLastAnniversaryDate(LocalDate.now());
+            liveData.setContractProd(dataService.getProductionSince(anniversaryDate));
+            log.debug("Contract production since [" + anniversaryDate + "]: " + liveData.getContractProd());
 
             return liveData;
         } catch (Exception e) {

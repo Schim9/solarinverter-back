@@ -11,6 +11,10 @@ inverter:
 pushbullet:
   api-key:
 
+contract:
+  anniversary-day: 25
+  anniversary-month: 1
+
 #Schedule task cron - every day at 10am
 schedule.task:
   syncProductionData: 0 0 10 * * *

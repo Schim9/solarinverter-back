@@ -23,4 +23,5 @@ public class ProdRestModel {
     private BigDecimal weekProd;
     private BigDecimal monthProd;
     private BigDecimal yearProd;
+    private BigDecimal contractProd;
 }
