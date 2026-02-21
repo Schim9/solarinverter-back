@@ -2,9 +2,7 @@ package lu.kaminski.inverter.service;
 
 import lombok.extern.log4j.Log4j2;
 import lu.kaminski.inverter.dao.DailyProdDAO;
-import lu.kaminski.inverter.dao.HourlyProdDAO;
 import lu.kaminski.inverter.model.entity.DailyProdEntity;
-import lu.kaminski.inverter.model.entity.HourlyProdEntity;
 import lu.kaminski.inverter.model.rest.ProdRestModel;
 import lu.kaminski.inverter.util.NotifUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,7 +11,6 @@ import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -24,8 +21,6 @@ public class SyncService {
 
     @Autowired
     private DailyProdDAO dailyProdDAO;
-    @Autowired
-    private HourlyProdDAO hourlyProdDAO;
     @Autowired
     private InverterService inverterService;
     @Autowired
@@ -89,29 +84,6 @@ public class SyncService {
             notifUtil.sendPushBulletNotif("DailyProd Data synchronized", "INFO");
         } catch (Exception e) {
             log.error("Error during sync for dailyProd", e);
-            notifUtil.sendPushBulletNotif(e.getMessage(), "ERROR");
-        }
-    }
-
-    // @Scheduled(cron = "${schedule.task.syncProductionDataForOneDay}")
-    public void syncProductionDataForOneDay() {
-        // Will get data for the day before
-        LocalDate day = LocalDate.now().minusDays(1);
-
-        log.info("Sync data for [" + day + "]");
-        try {
-            List<ProdRestModel> list = inverterService
-                    .getProdForDay(day.toString());
-            List<HourlyProdEntity> result = list.stream().map(p -> {
-                HourlyProdEntity hpe = new HourlyProdEntity();
-                hpe.setDate(LocalDateTime.parse(p.getDate()+ "T" +p.getTime()));
-                hpe.setValue(p.getValue());
-                return hpe;
-            }).collect(Collectors.toList());
-            hourlyProdDAO.saveAll(result);
-            notifUtil.sendPushBulletNotif("HourlyProd Data synchronized", "INFO");
-        } catch (Exception e) {
-            log.error("Error during sync for hourlyProd", e);
             notifUtil.sendPushBulletNotif(e.getMessage(), "ERROR");
         }
     }

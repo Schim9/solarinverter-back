@@ -137,10 +137,10 @@ public class InverterService {
             }
         } catch (SocketException se) {
             log.error("Error while reaching inverter", se);
-            throw new Exception("Connexion à l'onduleur impossible");
+            throw new Exception("Inverter connection failed");
         } catch (Exception e) {
             log.error("Error while getting production data", e);
-            throw new Exception("Erreur lors de la récupération de données" + e.getMessage());
+            throw new Exception("Error retrieving production data: " + e.getMessage());
         }
         return myList;
     }
@@ -197,10 +197,10 @@ public class InverterService {
             }
         } catch (SocketException se) {
             log.error("Error while reaching inverter", se);
-            throw new Exception("Connexion à l'onduleur impossible");
+            throw new Exception("Inverter connection failed");
         } catch (Exception e) {
             log.error("Error while getting production data", e);
-            throw new Exception("Erreur lors de la récupération de données" + e.getMessage());
+            throw new Exception("Error retrieving production data: " + e.getMessage());
         }
         return myList;
     }

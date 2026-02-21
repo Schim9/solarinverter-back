@@ -16,7 +16,7 @@ public class ShutdownController implements ApplicationContextAware {
     @PostMapping("/shutdownContext")
     public ResponseEntity<?> shutdownContext() {
         ((ConfigurableApplicationContext) context).close();
-        return ResponseEntity.ok("Solar-back will shut done gracefully");
+        return ResponseEntity.ok("Solar-back will shut down gracefully");
     }
 
     @Override

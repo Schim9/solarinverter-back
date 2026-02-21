@@ -62,15 +62,6 @@ public class MainController {
     }
 
     /**
-     * Deprecated / Return real time production
-     */
-    @RequestMapping(value = "/real-time", method = RequestMethod.GET, produces = "application/json")
-    public ResponseEntity<?> getRealTimeProd(@RequestParam Map<String, String> customQuery) {
-        log.debug("in getRealTimeProd");
-        return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).body(NOT_IMPLEMENTED.getMessage());
-    }
-
-    /**
      * Will retrieve data from inverter and data from database
      */
     @RequestMapping(value = "/livedata", method = RequestMethod.GET, produces = "application/json")
