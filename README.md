@@ -58,7 +58,7 @@ CORS allowed origins: `https://solar-app.kaminski.lu`, `http://localhost:4200`
 | GET | `/api/status` | Health check |
 | GET | `/api/inverter-status` | Trigger inverter status check + notification |
 | GET | `/api/daily-prod?start=YYYY-MM-DD&end=YYYY-MM-DD` | Historical production from DB |
-| GET | `/api/livedata` | Live data from inverter + sync to DB |
+| GET | `/api/livedata` | Live data from inverter + sync to DB. Response includes `contractProd` (kWh produced since last contract anniversary date) |
 | GET | `/api/update?nbDays=5` | Manual sync (default: last 5 days) |
 | POST | `/shutdownContext` | Graceful application shutdown |
 
@@ -91,6 +91,10 @@ inverter:
 pushbullet:
   api-key:  # PushBullet API key
 
+contract:
+  anniversary-day: 25    # Day of the contract anniversary date
+  anniversary-month: 1   # Month of the contract anniversary date
+
 schedule.task:
   syncProductionData: 0 0 10 * * *
   checkInverterStatus: 0 0 14 * * *
@@ -121,4 +125,4 @@ Table `daily_prod`:
 ./mvnw test
 ```
 
-21 unit tests covering `DataService`, `SyncService`, and `MainController`.
+26 unit tests covering `DataService`, `SyncService`, and `MainController`.
