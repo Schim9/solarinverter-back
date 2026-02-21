@@ -9,8 +9,8 @@ Frontend: https://github.com/Schim9/solarinverter-front
 
 | Layer | Technology |
 |---|---|
-| Language | Java 17 |
-| Framework | Spring Boot 2.5.6 (Data JPA, Web Services) |
+| Language | Java 21 |
+| Framework | Spring Boot 3.4.1 (Data JPA, Web Services) |
 | Database | MySQL 8 — database `inverter` |
 | ORM | Spring Data JPA / Hibernate |
 | HTTP client | Apache HttpClient 4.5.13 |
@@ -21,8 +21,6 @@ Frontend: https://github.com/Schim9/solarinverter-front
 | Notifications | PushBullet |
 | Testing | JUnit 5 + Mockito (via `spring-boot-starter-test`) |
 | Build | Maven (wrapper included) |
-
-> **Note:** Lombok is incompatible with Java 21. Use Java 17 to build and run.
 
 ---
 
@@ -114,14 +112,13 @@ Table `daily_prod`:
 ## Build & Run
 
 ```bash
-# Requires Java 17
-JAVA_HOME=/path/to/jdk-17 ./mvnw spring-boot:run
+./mvnw spring-boot:run
 ```
 
 ## Tests
 
 ```bash
-JAVA_HOME=/path/to/jdk-17 ./mvnw test
+./mvnw test
 ```
 
 21 unit tests covering `DataService`, `SyncService`, and `MainController`.
