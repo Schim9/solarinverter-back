@@ -140,6 +140,7 @@ public class SyncService {
             // Add production since contract anniversary date
             LocalDate anniversaryDate = getLastAnniversaryDate(LocalDate.now());
             liveData.setContractProd(dataService.getProductionSince(anniversaryDate));
+            liveData.setContractStartDate(anniversaryDate.toString());
             log.debug("Contract production since [" + anniversaryDate + "]: " + liveData.getContractProd());
 
             return liveData;

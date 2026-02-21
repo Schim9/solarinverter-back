@@ -24,4 +24,5 @@ public class ProdRestModel {
     private BigDecimal monthProd;
     private BigDecimal yearProd;
     private BigDecimal contractProd;
+    private String contractStartDate;
 }
