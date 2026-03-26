@@ -33,12 +33,12 @@ public class NotifUtil {
             post.addHeader("Access-Token", pushBulletProperties.getApiKey());
             post.addHeader("Content-Type", "application/json");
             StringEntity params =new StringEntity("{\"body\":\""+message+"\", " +
-                    "\"info\":\"" + title + "\"," +
+                    "\"title\":\"" + title + "\"," +
                     "\"type\":\"note\"} ", StandardCharsets.UTF_8);
             post.setEntity(params);
             httpClient.execute(post);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Error while sending push notification", e);
         }
     }
 }

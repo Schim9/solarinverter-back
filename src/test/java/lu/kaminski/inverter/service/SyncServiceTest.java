@@ -37,9 +37,6 @@ class SyncServiceTest {
     private NotifUtil notifUtil;
 
     @Mock
-    private DataService dataService;
-
-    @Mock
     private ContractProperties contractProperties;
 
     @InjectMocks
@@ -103,7 +100,7 @@ class SyncServiceTest {
 
         syncService.checkInverterStatus();
 
-        verify(notifUtil).sendPushBulletNotif("Production is near 0", "WARNING");
+        verify(notifUtil).sendPushBulletNotif("Production is near 0", "WARNING ⚠️");
     }
 
     @Test
@@ -113,7 +110,7 @@ class SyncServiceTest {
 
         syncService.checkInverterStatus();
 
-        verify(notifUtil).sendPushBulletNotif("The inverter is online", "INFO");
+        verify(notifUtil).sendPushBulletNotif("The inverter is online", "INFO ✅");
     }
 
     @Test
@@ -122,8 +119,8 @@ class SyncServiceTest {
 
         syncService.checkInverterStatus();
 
-        verify(notifUtil).sendPushBulletNotif(any(), eq("ERROR"));
-        verify(notifUtil).sendPushBulletNotif("Something is wrong with the inverter", "WARNING");
+        verify(notifUtil).sendPushBulletNotif(any(), eq("ERROR 🚨"));
+        verify(notifUtil).sendPushBulletNotif("Something is wrong with the inverter", "WARNING ⚠️");
     }
 
     // --- syncProductionData ---
@@ -142,7 +139,7 @@ class SyncServiceTest {
         ArgumentCaptor<List<DailyProdEntity>> captor = ArgumentCaptor.forClass(List.class);
         verify(dailyProdDAO).saveAll(captor.capture());
         assertThat(captor.getValue()).hasSize(1);
-        assertThat(captor.getValue().get(0).getValue()).isEqualTo(new BigDecimal("5.0"));
+        assertThat(captor.getValue().getFirst().getValue()).isEqualTo(new BigDecimal("5.0"));
     }
 
     @Test
@@ -155,7 +152,7 @@ class SyncServiceTest {
 
         syncService.syncProductionData(5L);
 
-        verify(notifUtil).sendPushBulletNotif(contains("No production"), eq("WARNING"));
+        verify(notifUtil).sendPushBulletNotif(contains("No production"), eq("WARNING ⚠️"));
     }
 
     @Test
@@ -168,7 +165,7 @@ class SyncServiceTest {
 
         syncService.syncProductionData(5L);
 
-        verify(notifUtil).sendPushBulletNotif(contains("Production is low"), eq("WARNING"));
+        verify(notifUtil).sendPushBulletNotif(contains("Production is low"), eq("WARNING ⚠️"));
     }
 
     @Test
@@ -177,7 +174,7 @@ class SyncServiceTest {
 
         syncService.syncProductionData(5L);
 
-        verify(notifUtil).sendPushBulletNotif(any(), eq("ERROR"));
+        verify(notifUtil).sendPushBulletNotif(any(), eq("ERROR 🚨"));
         verify(dailyProdDAO, never()).saveAll(any());
     }
 
@@ -225,7 +222,7 @@ class SyncServiceTest {
 
         syncService.getAndSyncLiveData();
 
-        verify(notifUtil).sendPushBulletNotif("Production did not change since last sync.", "WARNING");
+        verify(notifUtil).sendPushBulletNotif("Production did not change since last sync.", "WARNING ⚠️");
     }
 
     @Test

@@ -14,7 +14,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
-import static lu.kaminski.inverter.common.Messages.Message.NOT_IMPLEMENTED;
 import static lu.kaminski.inverter.common.Messages.Message.NO_PARAM;
 
 @Log4j2
@@ -72,7 +71,7 @@ public class MainController {
             return ResponseEntity.ok(test);
         } catch (Exception e) {
             log.error("Error while getting livedata", e);
-            notifUtil.sendPushBulletNotif(e.getMessage(), "ERROR");
+            notifUtil.sendPushBulletNotif(e.getMessage(), "ERROR 🚨");
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
         }
     }
