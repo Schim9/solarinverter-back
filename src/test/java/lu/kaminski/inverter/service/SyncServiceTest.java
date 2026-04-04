@@ -100,7 +100,7 @@ class SyncServiceTest {
 
         syncService.checkInverterStatus();
 
-        verify(notifUtil).sendPushBulletNotif("Production is near 0", "WARNING ⚠️");
+        verify(notifUtil).sendPushBulletNotif("Production is near 0", "Solar App ⚠️");
     }
 
     @Test
@@ -110,7 +110,7 @@ class SyncServiceTest {
 
         syncService.checkInverterStatus();
 
-        verify(notifUtil).sendPushBulletNotif("The inverter is online", "INFO ✅");
+        verify(notifUtil).sendPushBulletNotif("The inverter is online", "Solar App ✅");
     }
 
     @Test
@@ -119,8 +119,8 @@ class SyncServiceTest {
 
         syncService.checkInverterStatus();
 
-        verify(notifUtil).sendPushBulletNotif(any(), eq("ERROR 🚨"));
-        verify(notifUtil).sendPushBulletNotif("Something is wrong with the inverter", "WARNING ⚠️");
+        verify(notifUtil).sendPushBulletNotif(any(), eq("Solar App 🚨"));
+        verify(notifUtil).sendPushBulletNotif("Something is wrong with the inverter", "Solar App ⚠️");
     }
 
     // --- syncProductionData ---
@@ -152,7 +152,7 @@ class SyncServiceTest {
 
         syncService.syncProductionData(5L);
 
-        verify(notifUtil).sendPushBulletNotif(contains("No production"), eq("WARNING ⚠️"));
+        verify(notifUtil).sendPushBulletNotif(contains("No production"), eq("Solar App ⚠️"));
     }
 
     @Test
@@ -165,7 +165,7 @@ class SyncServiceTest {
 
         syncService.syncProductionData(5L);
 
-        verify(notifUtil).sendPushBulletNotif(contains("Production is low"), eq("WARNING ⚠️"));
+        verify(notifUtil).sendPushBulletNotif(contains("Production is low"), eq("Solar App ⚠️"));
     }
 
     @Test
@@ -174,7 +174,7 @@ class SyncServiceTest {
 
         syncService.syncProductionData(5L);
 
-        verify(notifUtil).sendPushBulletNotif(any(), eq("ERROR 🚨"));
+        verify(notifUtil).sendPushBulletNotif(any(), eq("Solar App 🚨"));
         verify(dailyProdDAO, never()).saveAll(any());
     }
 
@@ -222,7 +222,7 @@ class SyncServiceTest {
 
         syncService.getAndSyncLiveData();
 
-        verify(notifUtil).sendPushBulletNotif("Production did not change since last sync.", "WARNING ⚠️");
+        verify(notifUtil).sendPushBulletNotif("Production did not change since last sync.", "Solar App ⚠️");
     }
 
     @Test

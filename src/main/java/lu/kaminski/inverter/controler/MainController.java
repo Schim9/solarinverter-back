@@ -71,7 +71,7 @@ public class MainController {
             return ResponseEntity.ok(test);
         } catch (Exception e) {
             log.error("Error while getting livedata", e);
-            notifUtil.sendPushBulletNotif(e.getMessage(), "ERROR 🚨");
+            notifUtil.sendPushBulletNotif(e.getMessage(), "Solar App 🚨");
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
         }
     }

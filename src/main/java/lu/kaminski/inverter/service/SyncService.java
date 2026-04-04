@@ -49,14 +49,14 @@ public class SyncService {
             ProdRestModel liveData = inverterService.getLiveData();
             // Send a notification in case nothing has been produced
             if (liveData.getDayProd().equals(BigDecimal.ZERO)) {
-                notifUtil.sendPushBulletNotif("Production is near 0", "WARNING ⚠️");
+                notifUtil.sendPushBulletNotif("Production is near 0", "Solar App ⚠️");
             }
             else {
-                notifUtil.sendPushBulletNotif("The inverter is online", "INFO ✅");
+                notifUtil.sendPushBulletNotif("The inverter is online", "Solar App ✅");
             }
         } catch (Exception e) {
             log.error("Error during checking inverter status", e);
-            notifUtil.sendPushBulletNotif(e.getMessage(), "ERROR 🚨");
+            notifUtil.sendPushBulletNotif(e.getMessage(), "Solar App 🚨");
         }
     }
 
@@ -76,19 +76,19 @@ public class SyncService {
 
                 // Send a notification in case nothing has been produced
                 if (p.getValue().equals(BigDecimal.ZERO)) {
-                    notifUtil.sendPushBulletNotif("No production for " + p.getDate(), "WARNING ⚠️");
+                    notifUtil.sendPushBulletNotif("No production for " + p.getDate(), "Solar App ⚠️");
                 }
                 if (p.getValue().compareTo(BigDecimal.ONE) < 0) {
-                    notifUtil.sendPushBulletNotif("Production is low for " + p.getDate(), "WARNING ️ ⚠️️");
+                    notifUtil.sendPushBulletNotif("Production is low for " + p.getDate(), "Solar App ️ ⚠️️");
                 }
 
                 return dpe;
             }).collect(Collectors.toList());
             dailyProdDAO.saveAll(result);
-            notifUtil.sendPushBulletNotif("DailyProd Data synchronized", "INFO ✅");
+            notifUtil.sendPushBulletNotif("DailyProd Data synchronized", "Solar App ✅");
         } catch (Exception e) {
             log.error("Error during sync for dailyProd", e);
-            notifUtil.sendPushBulletNotif(e.getMessage(), "ERROR 🚨");
+            notifUtil.sendPushBulletNotif(e.getMessage(), "Solar App 🚨");
         }
     }
 
@@ -116,7 +116,7 @@ public class SyncService {
                 if (Optional.ofNullable(liveData.getDayProd())
                         .map(p -> p.compareTo(currentDayProd.getValue()) == 0)
                         .orElse(false)) {
-                    notifUtil.sendPushBulletNotif("Production did not change since last sync.", "WARNING ⚠️");
+                    notifUtil.sendPushBulletNotif("Production did not change since last sync.", "Solar App ⚠️");
                 }
             });
 
@@ -145,7 +145,7 @@ public class SyncService {
             return liveData;
         } catch (Exception e) {
             log.error("Error while getting livedata", e);
-            notifUtil.sendPushBulletNotif(e.getMessage(), "ERROR 🚨");
+            notifUtil.sendPushBulletNotif(e.getMessage(), "Solar App 🚨");
         }
         // In case there is no data, the function returns an empty object
         return new ProdRestModel();
