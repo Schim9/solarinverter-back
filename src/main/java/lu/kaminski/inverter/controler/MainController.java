@@ -3,7 +3,9 @@ package lu.kaminski.inverter.controler;
 import lombok.extern.log4j.Log4j2;
 import lu.kaminski.inverter.model.rest.ProdRestModel;
 import lu.kaminski.inverter.service.DataService;
+import lu.kaminski.inverter.service.StatusService;
 import lu.kaminski.inverter.service.SyncService;
+import lu.kaminski.inverter.util.DateUtil;
 import lu.kaminski.inverter.util.NotifUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -11,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -28,6 +31,10 @@ public class MainController {
     private DataService dataService;
     @Autowired
     private SyncService syncService;
+    @Autowired
+    private DateUtil dateUtil;
+    @Autowired
+    private StatusService statusService;
 
     /**
      * Health Check and status /
@@ -35,7 +42,13 @@ public class MainController {
     @RequestMapping(value = "/status", method = RequestMethod.GET)
     public ResponseEntity<?> status() {
         log.debug("in status");
-        return ResponseEntity.ok("App is up on " + LocalDateTime.now() + ".");
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("appCode", "SOLAR_APP");
+        body.put("status", "up");
+        body.put("uptime", dateUtil.formatUptime());
+        body.put("timestamp", LocalDateTime.now().toString());
+        body.put("anomalies", statusService.getAnomalies());
+        return ResponseEntity.ok(body);
     }
 
     @RequestMapping(value = "/inverter-status", method = RequestMethod.GET, produces = "application/json")

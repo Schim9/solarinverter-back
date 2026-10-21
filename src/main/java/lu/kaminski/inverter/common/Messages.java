@@ -13,7 +13,10 @@ public class Messages {
         NOT_IMPLEMENTED("This feature is not implemented"),
 
         //Data
-        NO_DATA_FOUND("No data found for [%s]");
+        NO_DATA_FOUND("No data found for [%s]"),
+        NO_SYNC_SINCE("Inverter has not been polled since %s"),
+        NO_DATA_SYNC_SINCE("Production data has not been sync since %s");
+
 
         private String message;
 

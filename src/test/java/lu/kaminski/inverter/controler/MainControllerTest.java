@@ -1,8 +1,10 @@
 package lu.kaminski.inverter.controler;
 
+import lu.kaminski.inverter.common.CommonData;
 import lu.kaminski.inverter.model.rest.ProdRestModel;
 import lu.kaminski.inverter.service.DataService;
 import lu.kaminski.inverter.service.SyncService;
+import lu.kaminski.inverter.util.DateUtil;
 import lu.kaminski.inverter.util.NotifUtil;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +13,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.Collections;
+import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -32,8 +35,18 @@ class MainControllerTest {
     @MockBean
     private SyncService syncService;
 
+    @MockBean
+    private DateUtil dateUtil;
+
+    @MockBean
+    private CommonData commonData;
+
     @Test
     void status_returns200() throws Exception {
+        when(dateUtil.formatUptime()).thenReturn("1h 30m");
+        when(commonData.getLastInverterPolling()).thenReturn(Optional.empty());
+        when(commonData.getLastInverterSyncData()).thenReturn(Optional.empty());
+
         mockMvc.perform(get("/api/status"))
                 .andExpect(status().isOk());
     }

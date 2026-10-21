@@ -17,7 +17,7 @@ contract:
 
 #Schedule task cron - every day at 10am
 schedule.task:
-  syncProductionData: 0 0 10 * * *
+  syncProductionData: 0 0 17 * * *
   checkInverterStatus: 0 0 14 * * *
 
 logging.level.lu.kaminski: DEBUG

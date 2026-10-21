@@ -1,6 +1,7 @@
 package lu.kaminski.inverter.service;
 
 import lombok.extern.log4j.Log4j2;
+import lu.kaminski.inverter.common.CommonData;
 import lu.kaminski.inverter.config.properties.ContractProperties;
 import lu.kaminski.inverter.dao.DailyProdDAO;
 import lu.kaminski.inverter.model.entity.DailyProdEntity;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -30,6 +32,8 @@ public class SyncService {
     private DataService dataService;
     @Autowired
     private ContractProperties contractProperties;
+    @Autowired
+    private CommonData commonData;
 
     @Scheduled(cron = "${schedule.task.syncProductionData}")
     public void schedulerSyncDataForPreviousDays() {
@@ -47,12 +51,10 @@ public class SyncService {
         log.info("Checking inverter status");
         try {
             ProdRestModel liveData = inverterService.getLiveData();
+            commonData.setLastInverterPolling(LocalDateTime.now());
             // Send a notification in case nothing has been produced
             if (liveData.getDayProd().equals(BigDecimal.ZERO)) {
                 notifUtil.sendPushBulletNotif("Production is near 0", "Solar App ⚠️");
-            }
-            else {
-                notifUtil.sendPushBulletNotif("The inverter is online", "Solar App ✅");
             }
         } catch (Exception e) {
             log.error("Error during checking inverter status", e);
@@ -85,7 +87,8 @@ public class SyncService {
                 return dpe;
             }).collect(Collectors.toList());
             dailyProdDAO.saveAll(result);
-            notifUtil.sendPushBulletNotif("DailyProd Data synchronized", "Solar App ✅");
+            commonData.setLastInverterSyncData(LocalDateTime.now());
+            commonData.setLastInverterPolling(LocalDateTime.now());
         } catch (Exception e) {
             log.error("Error during sync for dailyProd", e);
             notifUtil.sendPushBulletNotif(e.getMessage(), "Solar App 🚨");
@@ -105,7 +108,7 @@ public class SyncService {
         try {
             // Get live data
             ProdRestModel liveData = inverterService.getLiveData();
-
+            commonData.setLastInverterPolling(LocalDateTime.now());
             // Get latest data for current day
             Optional<DailyProdEntity> storedCurrentDayProd = dailyProdDAO.findByDate(LocalDate.now(), LocalDate.now())
                     .stream()

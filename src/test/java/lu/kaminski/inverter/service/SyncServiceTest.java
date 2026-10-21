@@ -19,9 +19,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.contains;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -104,13 +102,13 @@ class SyncServiceTest {
     }
 
     @Test
-    void checkInverterStatus_sendsInfo_whenInverterOnline() {
+    void checkInverterStatus_noNotif_whenInverterOnlineWithProduction() {
         ProdRestModel liveData = ProdRestModel.builder().dayProd(new BigDecimal("3.5")).build();
         when(inverterService.getLiveData()).thenReturn(liveData);
 
         syncService.checkInverterStatus();
 
-        verify(notifUtil).sendPushBulletNotif("The inverter is online", "Solar App ✅");
+        verify(notifUtil, never()).sendPushBulletNotif(any(), any());
     }
 
     @Test
@@ -120,7 +118,6 @@ class SyncServiceTest {
         syncService.checkInverterStatus();
 
         verify(notifUtil).sendPushBulletNotif(any(), eq("Solar App 🚨"));
-        verify(notifUtil).sendPushBulletNotif("Something is wrong with the inverter", "Solar App ⚠️");
     }
 
     // --- syncProductionData ---
