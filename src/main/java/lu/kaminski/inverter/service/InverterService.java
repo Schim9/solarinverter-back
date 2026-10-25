@@ -11,9 +11,9 @@ import lu.kaminski.inverter.model.rest.DailyProdResponse;
 import lu.kaminski.inverter.model.rest.LiveDataResponse;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.utils.URIBuilder;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
 import org.springframework.stereotype.Component;
@@ -36,8 +36,7 @@ public class InverterService {
 
     public LiveDataResponse getLiveData() {
         log.debug("getLiveData from [" + LocalDateTime.now() + "]");
-        try {
-            HttpClient httpClient = HttpClientBuilder.create().build();
+        try (CloseableHttpClient httpClient = HttpClientBuilder.create().build()) {
             URIBuilder builder = new URIBuilder(inverterProperties.getUrl() + "/v1/livedata");
             URI uri = builder.build();
             HttpGet getRequest = new HttpGet(uri);
@@ -96,8 +95,7 @@ public class InverterService {
     public List<DailyProdResponse> getDailyProd(String startDate, String endDate) throws Exception {
         log.debug("getDailyProd from [" + startDate + "] to [" + endDate + "]");
         List<DailyProdResponse> myList = new ArrayList<>();
-        try {
-            HttpClient httpClient = HttpClientBuilder.create().build();
+        try (CloseableHttpClient httpClient = HttpClientBuilder.create().build()) {
             URIBuilder builder = new URIBuilder(inverterProperties.getUrl() + "/v1/feeds/" +
                     "?client=queryND" +
                     "&feedList[]=E0_runtime" +

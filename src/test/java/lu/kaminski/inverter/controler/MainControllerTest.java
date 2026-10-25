@@ -5,7 +5,6 @@ import lu.kaminski.inverter.model.rest.LiveDataResponse;
 import lu.kaminski.inverter.service.DataService;
 import lu.kaminski.inverter.service.SyncService;
 import lu.kaminski.inverter.util.DateUtil;
-import lu.kaminski.inverter.util.NotifUtil;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
