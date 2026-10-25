@@ -2,7 +2,7 @@ package lu.kaminski.inverter.service;
 
 import lu.kaminski.inverter.dao.DailyProdDAO;
 import lu.kaminski.inverter.model.entity.DailyProdEntity;
-import lu.kaminski.inverter.model.rest.ProdRestModel;
+import lu.kaminski.inverter.model.rest.DailyProdResponse;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -31,7 +31,7 @@ class DataServiceTest {
     void getDailyProd_returnsEmptyList_whenNoData() {
         when(dailyProdDAO.findByDate(any(), any())).thenReturn(Collections.emptyList());
 
-        List<ProdRestModel> result = dataService.getDailyProd("2024-01-01", "2024-01-31");
+        List<DailyProdResponse> result = dataService.getDailyProd("2024-01-01", "2024-01-31");
 
         assertThat(result).isEmpty();
     }
@@ -44,7 +44,7 @@ class DataServiceTest {
 
         when(dailyProdDAO.findByDate(any(), any())).thenReturn(List.of(entity));
 
-        List<ProdRestModel> result = dataService.getDailyProd("2024-01-01", "2024-01-31");
+        List<DailyProdResponse> result = dataService.getDailyProd("2024-01-01", "2024-01-31");
 
         assertThat(result).hasSize(1);
         assertThat(result.get(0).getDate()).isEqualTo("2024-01-15");
@@ -63,7 +63,7 @@ class DataServiceTest {
 
         when(dailyProdDAO.findByDate(any(), any())).thenReturn(List.of(entity1, entity2));
 
-        List<ProdRestModel> result = dataService.getDailyProd("2024-01-01", "2024-01-31");
+        List<DailyProdResponse> result = dataService.getDailyProd("2024-01-01", "2024-01-31");
 
         assertThat(result).hasSize(2);
     }

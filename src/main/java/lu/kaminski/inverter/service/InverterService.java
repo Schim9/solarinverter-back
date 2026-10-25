@@ -7,7 +7,8 @@ import com.google.gson.JsonObject;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import lu.kaminski.inverter.config.properties.InverterProperties;
-import lu.kaminski.inverter.model.rest.ProdRestModel;
+import lu.kaminski.inverter.model.rest.DailyProdResponse;
+import lu.kaminski.inverter.model.rest.LiveDataResponse;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -33,7 +34,7 @@ public class InverterService {
 
     private final InverterProperties inverterProperties;
 
-    public ProdRestModel getLiveData() {
+    public LiveDataResponse getLiveData() {
         log.debug("getLiveData from [" + LocalDateTime.now() + "]");
         try {
             HttpClient httpClient = HttpClientBuilder.create().build();
@@ -71,7 +72,7 @@ public class InverterService {
                     }
                 }
             }
-            return ProdRestModel.builder()
+            return LiveDataResponse.builder()
                     .date(LocalDate.now().toString())
                     .dayProd(new BigDecimal(e0_runtime).divide(new BigDecimal(1000), RoundingMode.CEILING))
                     .weekProd(new BigDecimal(e0_7D).divide(new BigDecimal(1000), RoundingMode.CEILING))
@@ -84,7 +85,7 @@ public class InverterService {
             log.error("Error while getting live data", e);
         }
         // In case there is no data, the function returns an empty object
-        return new ProdRestModel();
+        return new LiveDataResponse();
     }
 
     /**
@@ -92,9 +93,9 @@ public class InverterService {
      * @param startDate format YYYY-MM-DDTHH:MM:SS.000Z
      * @param endDate format YYYY-MM-DDTHH:MM:SS.000Z
      */
-    public List<ProdRestModel> getDailyProd(String startDate, String endDate) throws Exception {
+    public List<DailyProdResponse> getDailyProd(String startDate, String endDate) throws Exception {
         log.debug("getDailyProd from [" + startDate + "] to [" + endDate + "]");
-        List<ProdRestModel> myList = new ArrayList<>();
+        List<DailyProdResponse> myList = new ArrayList<>();
         try {
             HttpClient httpClient = HttpClientBuilder.create().build();
             URIBuilder builder = new URIBuilder(inverterProperties.getUrl() + "/v1/feeds/" +
@@ -127,7 +128,7 @@ public class InverterService {
                     JsonElement element = tab.get(i);
                     String timestamp = String.valueOf(((JsonObject) element).get("timestamp"));
                     String valueStr = String.valueOf(((JsonObject) element).get("value"));
-                    ProdRestModel prod = ProdRestModel.builder()
+                    DailyProdResponse prod = DailyProdResponse.builder()
                             // Convert timestamp to date
                             .date(timestamp.substring(1, 11))
                             .value(new BigDecimal(valueStr).divide(new BigDecimal(1000), RoundingMode.CEILING))
@@ -145,63 +146,4 @@ public class InverterService {
         return myList;
     }
 
-    /**
-     * Return production data for requested day
-     * @param day format YYYY-MM-DD
-     */
-    public List<ProdRestModel> getProdForDay(String day) throws Exception {
-        log.debug("getProdForDay for [" + day + "]");
-        List<ProdRestModel> myList = new ArrayList<>();
-
-        try {
-            HttpClient httpClient = HttpClientBuilder.create().build();
-            URIBuilder builder = new URIBuilder(inverterProperties.getUrl() + "/v1/feeds/" +
-                    "?client=query1D" +
-                    "feedList[]=Pin" +
-                    "&maxDataPointsPerPage=1440" +
-                    "&start=" + day + "T00:00:00" +
-                    "&end=" + day + "T23:59:59");
-            URI uri = builder.build();
-            HttpGet getRequest = new HttpGet(uri);
-
-            getRequest.addHeader("Authorization", "Basic " + inverterProperties.getToken());
-
-
-            HttpResponse response = httpClient.execute(getRequest);
-            HttpEntity entity = response.getEntity();
-            if (entity != null) {
-                // return it as a String
-                String jsonStr = EntityUtils.toString(entity);
-                // String to JSONObject
-                JsonObject jsonResp = new Gson().fromJson(jsonStr, JsonObject.class);
-                // Get the relevant data
-                JsonArray tab = jsonResp.getAsJsonObject("feeds")
-                        .getAsJsonObject("ser4:" + inverterProperties.getDeviceId())
-                        .getAsJsonObject("datastreams")
-                        .getAsJsonObject("Pin")
-                        .getAsJsonArray("data");
-
-                for (int i = 0; i < tab.size(); i++) {
-                    JsonElement element = tab.get(i);
-                    String timestamp = String.valueOf(((JsonObject) element).get("timestamp"));
-                    String valueStr = String.valueOf(((JsonObject) element).get("value"));
-                    ProdRestModel prod = ProdRestModel.builder()
-                            .date(day)
-                            // Remove date to keep only times (HH:MM)
-                            .time(timestamp.substring(12, 17))
-                            .value(new BigDecimal(valueStr).divide(new BigDecimal(1000),
-                                    RoundingMode.CEILING))
-                            .build();
-                    myList.add(prod);
-                }
-            }
-        } catch (SocketException se) {
-            log.error("Error while reaching inverter", se);
-            throw new Exception("Inverter connection failed");
-        } catch (Exception e) {
-            log.error("Error while getting production data", e);
-            throw new Exception("Error retrieving production data: " + e.getMessage());
-        }
-        return myList;
-    }
 }

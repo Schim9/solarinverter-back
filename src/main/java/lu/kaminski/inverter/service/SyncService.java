@@ -6,7 +6,8 @@ import lu.kaminski.inverter.common.CommonData;
 import lu.kaminski.inverter.config.properties.ContractProperties;
 import lu.kaminski.inverter.dao.DailyProdDAO;
 import lu.kaminski.inverter.model.entity.DailyProdEntity;
-import lu.kaminski.inverter.model.rest.ProdRestModel;
+import lu.kaminski.inverter.model.rest.DailyProdResponse;
+import lu.kaminski.inverter.model.rest.LiveDataResponse;
 import lu.kaminski.inverter.util.NotifUtil;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -45,7 +46,7 @@ public class SyncService {
     public void checkInverterStatus() {
         log.info("Checking inverter status");
         try {
-            ProdRestModel liveData = inverterService.getLiveData();
+            LiveDataResponse liveData = inverterService.getLiveData();
             commonData.setLastInverterPolling(LocalDateTime.now());
             // Send a notification in case nothing has been produced
             if (liveData.getDayProd().equals(BigDecimal.ZERO)) {
@@ -63,10 +64,10 @@ public class SyncService {
 
         log.info("Sync data from [" + startDate + "] to [" + endDate + " ]");
         try {
-            List<ProdRestModel> list = inverterService
+            List<DailyProdResponse> list = inverterService
                     .getDailyProd(startDate + "T00:00:00.000Z",
                             endDate + "T23:59:00.000Z");
-            List<DailyProdEntity> result = list.stream().map(p -> {
+            List<DailyProdEntity> result = list.stream().map((DailyProdResponse p) -> {
                 DailyProdEntity dpe = new DailyProdEntity();
                 dpe.setDate(LocalDate.parse(p.getDate()));
                 dpe.setValue(p.getValue());
@@ -99,10 +100,10 @@ public class SyncService {
                 : anniversaryThisYear;
     }
 
-    public ProdRestModel getAndSyncLiveData() {
+    public LiveDataResponse getAndSyncLiveData() {
         try {
             // Get live data
-            ProdRestModel liveData = inverterService.getLiveData();
+            LiveDataResponse liveData = inverterService.getLiveData();
             commonData.setLastInverterPolling(LocalDateTime.now());
             // Get latest data for current day
             Optional<DailyProdEntity> storedCurrentDayProd = dailyProdDAO.findByDate(LocalDate.now(), LocalDate.now())
@@ -127,7 +128,7 @@ public class SyncService {
                 dailyProdDAO.save(dpe);
             }, () -> {
                 // No refreshed data... Return the one retrieved from database in case it exists
-                liveData.setValue(
+                liveData.setDayProd(
                         storedCurrentDayProd
                                 .map(DailyProdEntity::getValue)
                                 .orElse(BigDecimal.ZERO)
@@ -146,6 +147,6 @@ public class SyncService {
             notifUtil.sendPushBulletNotif(e.getMessage(), "Solar App 🚨");
         }
         // In case there is no data, the function returns an empty object
-        return new ProdRestModel();
+        return new LiveDataResponse();
     }
 }

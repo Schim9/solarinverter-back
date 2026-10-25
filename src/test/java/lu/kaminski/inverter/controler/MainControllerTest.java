@@ -1,7 +1,7 @@
 package lu.kaminski.inverter.controler;
 
 import lu.kaminski.inverter.common.CommonData;
-import lu.kaminski.inverter.model.rest.ProdRestModel;
+import lu.kaminski.inverter.model.rest.LiveDataResponse;
 import lu.kaminski.inverter.service.DataService;
 import lu.kaminski.inverter.service.SyncService;
 import lu.kaminski.inverter.util.DateUtil;
@@ -69,7 +69,7 @@ class MainControllerTest {
 
     @Test
     void getLiveData_returns200() throws Exception {
-        when(syncService.getAndSyncLiveData()).thenReturn(new ProdRestModel());
+        when(syncService.getAndSyncLiveData()).thenReturn(new LiveDataResponse());
 
         mockMvc.perform(get("/api/livedata"))
                 .andExpect(status().isOk());

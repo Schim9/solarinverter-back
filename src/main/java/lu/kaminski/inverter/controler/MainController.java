@@ -2,7 +2,8 @@ package lu.kaminski.inverter.controler;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import lu.kaminski.inverter.model.rest.ProdRestModel;
+import lu.kaminski.inverter.model.rest.DailyProdResponse;
+import lu.kaminski.inverter.model.rest.LiveDataResponse;
 import lu.kaminski.inverter.service.DataService;
 import lu.kaminski.inverter.service.StatusService;
 import lu.kaminski.inverter.service.SyncService;
@@ -64,7 +65,7 @@ public class MainController {
             log.error("Invalid input [start or end are not defined]");
             return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).body(NO_PARAM.getMessage());
         }
-        List<ProdRestModel> test = dataService.getDailyProd(customQuery.get("start"), customQuery.get("end"));
+        List<DailyProdResponse> test = dataService.getDailyProd(customQuery.get("start"), customQuery.get("end"));
         return ResponseEntity.ok(test);
     }
 
@@ -75,7 +76,7 @@ public class MainController {
     public ResponseEntity<?> getLiveData() {
 
         try {
-            ProdRestModel test = syncService.getAndSyncLiveData();
+            LiveDataResponse test = syncService.getAndSyncLiveData();
             return ResponseEntity.ok(test);
         } catch (Exception e) {
             log.error("Error while getting livedata", e);

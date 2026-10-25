@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import lu.kaminski.inverter.dao.DailyProdDAO;
 import lu.kaminski.inverter.model.entity.DailyProdEntity;
-import lu.kaminski.inverter.model.rest.ProdRestModel;
+import lu.kaminski.inverter.model.rest.DailyProdResponse;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -19,10 +19,10 @@ public class DataService {
 
     private final DailyProdDAO dailyProdDAO;
 
-    public List<ProdRestModel> getDailyProd(String startDate, String endDate) {
+    public List<DailyProdResponse> getDailyProd(String startDate, String endDate) {
         log.debug("getDailyProd from [" + startDate + "] to [" + endDate + "]");
         List<DailyProdEntity> records = dailyProdDAO.findByDate(LocalDate.parse(startDate), LocalDate.parse(endDate));
-        List<ProdRestModel> result = records.stream().map(r -> ProdRestModel.builder()
+        List<DailyProdResponse> result = records.stream().map(r -> DailyProdResponse.builder()
                 .date(r.getDate().toString())
                 .value(r.getValue())
                 .build()).collect(Collectors.toList());

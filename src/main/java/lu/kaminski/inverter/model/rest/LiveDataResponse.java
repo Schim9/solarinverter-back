@@ -1,7 +1,6 @@
 package lu.kaminski.inverter.model.rest;
 
 import lombok.*;
-import lombok.extern.log4j.Log4j2;
 
 import java.math.BigDecimal;
 
@@ -10,15 +9,9 @@ import java.math.BigDecimal;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Log4j2
-public class ProdRestModel {
+public class LiveDataResponse {
 
-    //Stats
     private String date;
-    private String time;
-    private BigDecimal value;
-
-    //Livedata
     private BigDecimal dayProd;
     private BigDecimal weekProd;
     private BigDecimal monthProd;
