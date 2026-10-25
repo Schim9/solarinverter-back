@@ -22,11 +22,10 @@ public class DataService {
     public List<DailyProdResponse> getDailyProd(String startDate, String endDate) {
         log.debug("getDailyProd from [" + startDate + "] to [" + endDate + "]");
         List<DailyProdEntity> records = dailyProdDAO.findByDate(LocalDate.parse(startDate), LocalDate.parse(endDate));
-        List<DailyProdResponse> result = records.stream().map(r -> DailyProdResponse.builder()
+        return records.stream().map(r -> DailyProdResponse.builder()
                 .date(r.getDate().toString())
                 .value(r.getValue())
                 .build()).collect(Collectors.toList());
-        return result;
     }
 
     public BigDecimal getProductionSince(LocalDate from) {

@@ -47,8 +47,8 @@ class DataServiceTest {
         List<DailyProdResponse> result = dataService.getDailyProd("2024-01-01", "2024-01-31");
 
         assertThat(result).hasSize(1);
-        assertThat(result.get(0).getDate()).isEqualTo("2024-01-15");
-        assertThat(result.get(0).getValue()).isEqualTo(new BigDecimal("5.5"));
+        assertThat(result.getFirst().getDate()).isEqualTo("2024-01-15");
+        assertThat(result.getFirst().getValue()).isEqualTo(new BigDecimal("5.5"));
     }
 
     @Test
