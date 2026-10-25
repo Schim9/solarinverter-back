@@ -9,7 +9,7 @@ import lu.kaminski.inverter.util.NotifUtil;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.Collections;
@@ -26,19 +26,16 @@ class MainControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-    @MockBean
-    private NotifUtil notifUtil;
-
-    @MockBean
+    @MockitoBean
     private DataService dataService;
 
-    @MockBean
+    @MockitoBean
     private SyncService syncService;
 
-    @MockBean
+    @MockitoBean
     private DateUtil dateUtil;
 
-    @MockBean
+    @MockitoBean
     private CommonData commonData;
 
     @Test
