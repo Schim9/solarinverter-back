@@ -1,5 +1,6 @@
 package lu.kaminski.inverter.service;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import lu.kaminski.inverter.common.CommonData;
 import lu.kaminski.inverter.config.properties.ContractProperties;
@@ -7,7 +8,6 @@ import lu.kaminski.inverter.dao.DailyProdDAO;
 import lu.kaminski.inverter.model.entity.DailyProdEntity;
 import lu.kaminski.inverter.model.rest.ProdRestModel;
 import lu.kaminski.inverter.util.NotifUtil;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -20,20 +20,15 @@ import java.util.stream.Collectors;
 
 @Log4j2
 @Component
+@RequiredArgsConstructor
 public class SyncService {
 
-    @Autowired
-    private DailyProdDAO dailyProdDAO;
-    @Autowired
-    private InverterService inverterService;
-    @Autowired
-    private NotifUtil notifUtil;
-    @Autowired
-    private DataService dataService;
-    @Autowired
-    private ContractProperties contractProperties;
-    @Autowired
-    private CommonData commonData;
+    private final DailyProdDAO dailyProdDAO;
+    private final InverterService inverterService;
+    private final NotifUtil notifUtil;
+    private final DataService dataService;
+    private final ContractProperties contractProperties;
+    private final CommonData commonData;
 
     @Scheduled(cron = "${schedule.task.syncProductionData}")
     public void schedulerSyncDataForPreviousDays() {

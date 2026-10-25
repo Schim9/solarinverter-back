@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import lu.kaminski.inverter.config.properties.InverterProperties;
 import lu.kaminski.inverter.model.rest.ProdRestModel;
@@ -14,7 +15,6 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -28,10 +28,10 @@ import java.util.List;
 
 @Log4j2
 @Component
+@RequiredArgsConstructor
 public class InverterService {
 
-    @Autowired
-    private InverterProperties inverterProperties;
+    private final InverterProperties inverterProperties;
 
     public ProdRestModel getLiveData() {
         log.debug("getLiveData from [" + LocalDateTime.now() + "]");
@@ -56,7 +56,7 @@ public class InverterService {
                 // String to JSONObject
                 JsonObject jsonResp = new Gson().fromJson(jsonStr, JsonObject.class);
                 // Get the relevant data
-                JsonArray tab = jsonResp.getAsJsonObject("301978-3P21-1920")
+                JsonArray tab = jsonResp.getAsJsonObject(inverterProperties.getDeviceId())
                         .getAsJsonArray("points");
 
                 for (int i = 0; i < tab.size(); i++) {
@@ -118,7 +118,7 @@ public class InverterService {
                 JsonObject jsonResp = new Gson().fromJson(jsonStr, JsonObject.class);
                 // Get the relevant data
                 JsonArray tab = jsonResp.getAsJsonObject("feeds")
-                        .getAsJsonObject("ser4:301978-3P21-1920")
+                        .getAsJsonObject("ser4:" + inverterProperties.getDeviceId())
                         .getAsJsonObject("datastreams")
                         .getAsJsonObject("E0_runtime")
                         .getAsJsonArray("data");
@@ -176,7 +176,7 @@ public class InverterService {
                 JsonObject jsonResp = new Gson().fromJson(jsonStr, JsonObject.class);
                 // Get the relevant data
                 JsonArray tab = jsonResp.getAsJsonObject("feeds")
-                        .getAsJsonObject("ser4:301978-3P21-1920")
+                        .getAsJsonObject("ser4:" + inverterProperties.getDeviceId())
                         .getAsJsonObject("datastreams")
                         .getAsJsonObject("Pin")
                         .getAsJsonArray("data");

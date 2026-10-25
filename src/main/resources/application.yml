@@ -7,6 +7,11 @@ spring:
 inverter:
   url:
   token:
+  device-id:
+
+cors:
+  allowed-origins:
+    - https://solar-app.kaminski.lu
 
 pushbullet:
   api-key:
@@ -15,7 +20,7 @@ contract:
   anniversary-day: 25
   anniversary-month: 1
 
-#Schedule task cron - every day at 10am
+#Schedule task cron - syncProductionData at 5pm, checkInverterStatus at 2pm
 schedule.task:
   syncProductionData: 0 0 17 * * *
   checkInverterStatus: 0 0 14 * * *

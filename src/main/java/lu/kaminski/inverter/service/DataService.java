@@ -1,10 +1,10 @@
 package lu.kaminski.inverter.service;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import lu.kaminski.inverter.dao.DailyProdDAO;
 import lu.kaminski.inverter.model.entity.DailyProdEntity;
 import lu.kaminski.inverter.model.rest.ProdRestModel;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -14,10 +14,10 @@ import java.util.stream.Collectors;
 
 @Component
 @Log4j2
+@RequiredArgsConstructor
 public class DataService {
 
-    @Autowired
-    private DailyProdDAO dailyProdDAO;
+    private final DailyProdDAO dailyProdDAO;
 
     public List<ProdRestModel> getDailyProd(String startDate, String endDate) {
         log.debug("getDailyProd from [" + startDate + "] to [" + endDate + "]");

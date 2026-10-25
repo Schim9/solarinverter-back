@@ -1,5 +1,6 @@
 package lu.kaminski.inverter.util;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import lu.kaminski.inverter.config.properties.PushBulletProperties;
 import org.apache.http.client.HttpClient;
@@ -7,7 +8,6 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.net.URI;
@@ -15,10 +15,10 @@ import java.nio.charset.StandardCharsets;
 
 @Log4j2
 @Component
+@RequiredArgsConstructor
 public class NotifUtil {
 
-    @Autowired
-    public PushBulletProperties pushBulletProperties;
+    private final PushBulletProperties pushBulletProperties;
 
     public void sendPushBulletNotif(String message, String title) {
         log.debug("Send a notification to PushBullet: [" + message + "]");

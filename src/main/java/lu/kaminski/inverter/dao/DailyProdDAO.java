@@ -10,7 +10,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 @Transactional
-public interface DailyProdDAO extends CrudRepository<DailyProdEntity, Long> {
+public interface DailyProdDAO extends CrudRepository<DailyProdEntity, LocalDate> {
 
 	@Query("SELECT p FROM DailyProdEntity p " +
 			"WHERE (p.date) >= :startDate " +

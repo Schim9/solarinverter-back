@@ -1,8 +1,8 @@
 package lu.kaminski.inverter.service;
 
+import lombok.RequiredArgsConstructor;
 import lu.kaminski.inverter.common.CommonData;
 import lu.kaminski.inverter.util.DateUtil;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -13,10 +13,10 @@ import static lu.kaminski.inverter.common.Messages.Message.NO_DATA_SYNC_SINCE;
 import static lu.kaminski.inverter.common.Messages.Message.NO_SYNC_SINCE;
 
 @Component
+@RequiredArgsConstructor
 public class StatusService {
 
-    @Autowired
-    private CommonData commonData;
+    private final CommonData commonData;
 
     public List<String> getAnomalies() {
         var result = new ArrayList<String>();

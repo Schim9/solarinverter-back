@@ -1,5 +1,6 @@
 package lu.kaminski.inverter.controler;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import lu.kaminski.inverter.model.rest.ProdRestModel;
 import lu.kaminski.inverter.service.DataService;
@@ -7,7 +8,6 @@ import lu.kaminski.inverter.service.StatusService;
 import lu.kaminski.inverter.service.SyncService;
 import lu.kaminski.inverter.util.DateUtil;
 import lu.kaminski.inverter.util.NotifUtil;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -21,20 +21,15 @@ import static lu.kaminski.inverter.common.Messages.Message.NO_PARAM;
 
 @Log4j2
 @RestController
-@CrossOrigin(origins = "*")
 @RequestMapping(path = "/api")
+@RequiredArgsConstructor
 public class MainController {
 
-    @Autowired
-    private NotifUtil notifUtil;
-    @Autowired
-    private DataService dataService;
-    @Autowired
-    private SyncService syncService;
-    @Autowired
-    private DateUtil dateUtil;
-    @Autowired
-    private StatusService statusService;
+    private final NotifUtil notifUtil;
+    private final DataService dataService;
+    private final SyncService syncService;
+    private final DateUtil dateUtil;
+    private final StatusService statusService;
 
     /**
      * Health Check and status /
