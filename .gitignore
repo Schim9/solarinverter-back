@@ -34,3 +34,14 @@ build/
 /logs/*.log
 /.claude/settings.local.json
 /CLAUDE.md
+
+### Fichiers de config locaux sensibles ###
+application-local.yml
+application-local.properties
+.env
+.env.local
+
+### Keystores ###
+*.jks
+*.p12
+*.pfx

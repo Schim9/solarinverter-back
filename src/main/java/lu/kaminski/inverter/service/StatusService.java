@@ -9,8 +9,8 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import static lu.kaminski.inverter.common.Messages.Message.NO_DATA_SYNC_SINCE;
-import static lu.kaminski.inverter.common.Messages.Message.NO_SYNC_SINCE;
+import static lu.kaminski.inverter.common.Messages.Message.*;
+
 
 @Component
 @RequiredArgsConstructor
@@ -30,6 +30,20 @@ public class StatusService {
         commonData.getLastInverterSyncData()
                 .filter(t -> t.isBefore(threshold))
                 .map(t -> NO_DATA_SYNC_SINCE.getMessage(t.format(DateUtil.FORMAT)))
+                .ifPresent(result::add);
+
+        return result;
+    }
+
+    public List<String> getInfos() {
+        var result = new ArrayList<String>();
+
+        commonData.getLastInverterPolling()
+                .map(t -> LAST_INVERTER_POLLING.getMessage(t.format(DateUtil.FORMAT)))
+                .ifPresent(result::add);
+
+        commonData.getLastInverterSyncData()
+                .map(t -> LAST_INVERTER_SYNC_DATA.getMessage(t.format(DateUtil.FORMAT)))
                 .ifPresent(result::add);
 
         return result;

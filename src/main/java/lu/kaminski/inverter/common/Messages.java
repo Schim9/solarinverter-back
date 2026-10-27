@@ -15,7 +15,11 @@ public class Messages {
         //Data
         NO_DATA_FOUND("No data found for [%s]"),
         NO_SYNC_SINCE("Inverter has not been polled since %s"),
-        NO_DATA_SYNC_SINCE("Production data has not been sync since %s");
+        NO_DATA_SYNC_SINCE("Production data has not been sync since %s"),
+
+        //Infos
+        LAST_INVERTER_POLLING("Inverter has been polled at %s"),
+        LAST_INVERTER_SYNC_DATA("Production data has been synced at %s");
 
 
         private String message;

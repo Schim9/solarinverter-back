@@ -43,6 +43,7 @@ public class MainController {
         body.put("status", "up");
         body.put("uptime", dateUtil.formatUptime());
         body.put("timestamp", LocalDateTime.now().toString());
+        body.put("infos", statusService.getInfos());
         body.put("anomalies", statusService.getAnomalies());
         return ResponseEntity.ok(body);
     }
