@@ -34,7 +34,7 @@ public class InverterService {
 
     private final InverterProperties inverterProperties;
 
-    public LiveDataResponse getLiveData() {
+    public LiveDataResponse getLiveData() throws Exception {
         log.debug("getLiveData from [" + LocalDateTime.now() + "]");
         try (CloseableHttpClient httpClient = HttpClientBuilder.create().build()) {
             URIBuilder builder = new URIBuilder(inverterProperties.getUrl() + "/v1/livedata");
@@ -80,11 +80,11 @@ public class InverterService {
                     .build();
         } catch (SocketException se) {
             log.warn("Error while reaching inverter", se);
+            throw new Exception("Inverter connection failed");
         } catch (Exception e) {
             log.error("Error while getting live data", e);
+            throw new Exception("Error retrieving live data: " + e.getMessage());
         }
-        // In case there is no data, the function returns an empty object
-        return new LiveDataResponse();
     }
 
     /**

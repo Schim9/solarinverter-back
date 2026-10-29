@@ -1,4 +1,4 @@
-package lu.kaminski.inverter.controler;
+package lu.kaminski.inverter.controller;
 
 import lu.kaminski.inverter.common.CommonData;
 import lu.kaminski.inverter.model.rest.LiveDataResponse;
@@ -40,7 +40,8 @@ class MainControllerTest {
     @Test
     void status_returns200() throws Exception {
         when(dateUtil.formatUptime()).thenReturn("1h 30m");
-        when(commonData.getLastInverterPolling()).thenReturn(Optional.empty());
+        when(commonData.getLastScheduledPoll()).thenReturn(Optional.empty());
+        when(commonData.getLastLiveDataPoll()).thenReturn(Optional.empty());
         when(commonData.getLastInverterSyncData()).thenReturn(Optional.empty());
 
         mockMvc.perform(get("/api/status"))
@@ -60,7 +61,7 @@ class MainControllerTest {
     @Test
     void getDailyProd_returns405_whenMissingParams() throws Exception {
         mockMvc.perform(get("/api/daily-prod"))
-                .andExpect(status().isMethodNotAllowed());
+                .andExpect(status().isBadRequest());
     }
 
     @Test

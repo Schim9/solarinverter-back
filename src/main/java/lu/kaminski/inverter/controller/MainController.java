@@ -1,4 +1,4 @@
-package lu.kaminski.inverter.controler;
+package lu.kaminski.inverter.controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -64,7 +64,7 @@ public class MainController {
         if (!customQuery.containsKey("start") || !customQuery.containsKey("end")) {
             // Will return HTTP Code 405
             log.error("Invalid input [start or end are not defined]");
-            return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).body(NO_PARAM.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(NO_PARAM.getMessage());
         }
         List<DailyProdResponse> test = dataService.getDailyProd(customQuery.get("start"), customQuery.get("end"));
         return ResponseEntity.ok(test);
@@ -90,10 +90,9 @@ public class MainController {
      * SYNC DATA FROM INVERTER /
      */
     @RequestMapping(value = "/update", method = RequestMethod.GET, produces = "application/json")
-    public ResponseEntity<?> updateProd(@RequestParam Map<String, String> customQuery) {
-        String nbDays = customQuery.getOrDefault("nbDays", "5");
+    public ResponseEntity<?> updateProd(@RequestParam(defaultValue = "5") Long nbDays) {
         log.debug("in updateProd");
-        syncService.syncProductionData(Long.valueOf(nbDays));
+        syncService.syncProductionData(nbDays);
         return ResponseEntity.ok("ok");
     }
 }

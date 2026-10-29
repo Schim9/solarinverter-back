@@ -18,7 +18,8 @@ public class Messages {
         NO_DATA_SYNC_SINCE("Production data has not been sync since %s"),
 
         //Infos
-        LAST_INVERTER_POLLING("Inverter has been polled at %s"),
+        LAST_SCHEDULED_POLL("Inverter has been polled (scheduled) at %s"),
+        LAST_LIVE_DATA_POLL("Last live data request at %s"),
         LAST_INVERTER_SYNC_DATA("Production data has been synced at %s");
 
 

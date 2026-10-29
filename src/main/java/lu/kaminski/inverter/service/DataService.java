@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Component
@@ -33,5 +34,17 @@ public class DataService {
         return dailyProdDAO.findByDate(from, LocalDate.now()).stream()
                 .map(DailyProdEntity::getValue)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    public Optional<DailyProdEntity> findForDate(LocalDate date) {
+        return dailyProdDAO.findByDate(date, date).stream().findFirst();
+    }
+
+    public void save(DailyProdEntity entity) {
+        dailyProdDAO.save(entity);
+    }
+
+    public void saveAll(List<DailyProdEntity> entities) {
+        dailyProdDAO.saveAll(entities);
     }
 }

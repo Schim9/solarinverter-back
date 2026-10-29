@@ -1,7 +1,6 @@
 package lu.kaminski.inverter.service;
 
 import lu.kaminski.inverter.config.properties.ContractProperties;
-import lu.kaminski.inverter.dao.DailyProdDAO;
 import lu.kaminski.inverter.model.entity.DailyProdEntity;
 import lu.kaminski.inverter.model.rest.DailyProdResponse;
 import lu.kaminski.inverter.model.rest.LiveDataResponse;
@@ -16,8 +15,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.*;
@@ -27,13 +26,13 @@ import static org.mockito.Mockito.*;
 class SyncServiceTest {
 
     @Mock
-    private DailyProdDAO dailyProdDAO;
-
-    @Mock
     private InverterService inverterService;
 
     @Mock
     private NotifUtil notifUtil;
+
+    @Mock
+    private DataService dataService;
 
     @Mock
     private ContractProperties contractProperties;
@@ -93,7 +92,7 @@ class SyncServiceTest {
     // --- checkInverterStatus ---
 
     @Test
-    void checkInverterStatus_sendsWarning_whenDayProdIsZero() {
+    void checkInverterStatus_sendsWarning_whenDayProdIsZero() throws Exception {
         LiveDataResponse liveData = LiveDataResponse.builder().dayProd(BigDecimal.ZERO).build();
         when(inverterService.getLiveData()).thenReturn(liveData);
 
@@ -103,7 +102,7 @@ class SyncServiceTest {
     }
 
     @Test
-    void checkInverterStatus_noNotif_whenInverterOnlineWithProduction() {
+    void checkInverterStatus_noNotif_whenInverterOnlineWithProduction() throws Exception {
         LiveDataResponse liveData = LiveDataResponse.builder().dayProd(new BigDecimal("3.5")).build();
         when(inverterService.getLiveData()).thenReturn(liveData);
 
@@ -113,7 +112,7 @@ class SyncServiceTest {
     }
 
     @Test
-    void checkInverterStatus_sendsError_whenExceptionThrown() {
+    void checkInverterStatus_sendsError_whenExceptionThrown() throws Exception {
         when(inverterService.getLiveData()).thenThrow(new RuntimeException("Inverter connection failed"));
 
         syncService.checkInverterStatus();
@@ -135,7 +134,7 @@ class SyncServiceTest {
 
         @SuppressWarnings("unchecked")
         ArgumentCaptor<List<DailyProdEntity>> captor = ArgumentCaptor.forClass(List.class);
-        verify(dailyProdDAO).saveAll(captor.capture());
+        verify(dataService).saveAll(captor.capture());
         assertThat(captor.getValue()).hasSize(1);
         assertThat(captor.getValue().getFirst().getValue()).isEqualTo(new BigDecimal("5.0"));
     }
@@ -173,42 +172,42 @@ class SyncServiceTest {
         syncService.syncProductionData(5L);
 
         verify(notifUtil).sendPushBulletNotif(any(), eq("Solar App 🚨"));
-        verify(dailyProdDAO, never()).saveAll(any());
+        verify(dataService, never()).saveAll(any());
     }
 
     // --- getAndSyncLiveData ---
 
     @Test
-    void getAndSyncLiveData_savesCurrentDayData() {
+    void getAndSyncLiveData_savesCurrentDayData() throws Exception {
         BigDecimal dayProd = new BigDecimal("4.2");
         LiveDataResponse liveData = LiveDataResponse.builder().dayProd(dayProd).build();
         when(inverterService.getLiveData()).thenReturn(liveData);
-        when(dailyProdDAO.findByDate(any(), any())).thenReturn(Collections.emptyList());
+        when(dataService.findForDate(any())).thenReturn(Optional.empty());
 
         LiveDataResponse result = syncService.getAndSyncLiveData();
 
-        verify(dailyProdDAO).save(any(DailyProdEntity.class));
+        verify(dataService).save(any(DailyProdEntity.class));
         assertThat(result.getDayProd()).isEqualTo(dayProd);
     }
 
     @Test
-    void getAndSyncLiveData_usesDbValue_whenDayProdIsNull() {
+    void getAndSyncLiveData_usesDbValue_whenDayProdIsNull() throws Exception {
         LiveDataResponse liveData = LiveDataResponse.builder().build(); // dayProd is null
         when(inverterService.getLiveData()).thenReturn(liveData);
 
         DailyProdEntity storedEntity = new DailyProdEntity();
         storedEntity.setDate(LocalDate.now());
         storedEntity.setValue(new BigDecimal("3.5"));
-        when(dailyProdDAO.findByDate(any(), any())).thenReturn(List.of(storedEntity));
+        when(dataService.findForDate(any())).thenReturn(Optional.of(storedEntity));
 
         LiveDataResponse result = syncService.getAndSyncLiveData();
 
         assertThat(result.getDayProd()).isEqualTo(new BigDecimal("3.5"));
-        verify(dailyProdDAO, never()).save(any());
+        verify(dataService, never()).save(any());
     }
 
     @Test
-    void getAndSyncLiveData_sendsWarning_whenProductionStagnates() {
+    void getAndSyncLiveData_sendsWarning_whenProductionStagnates() throws Exception {
         BigDecimal sameValue = new BigDecimal("5.0");
         LiveDataResponse liveData = LiveDataResponse.builder().dayProd(sameValue).build();
         when(inverterService.getLiveData()).thenReturn(liveData);
@@ -216,7 +215,7 @@ class SyncServiceTest {
         DailyProdEntity storedEntity = new DailyProdEntity();
         storedEntity.setDate(LocalDate.now());
         storedEntity.setValue(sameValue);
-        when(dailyProdDAO.findByDate(any(), any())).thenReturn(List.of(storedEntity));
+        when(dataService.findForDate(any())).thenReturn(Optional.of(storedEntity));
 
         syncService.getAndSyncLiveData();
 
@@ -224,7 +223,7 @@ class SyncServiceTest {
     }
 
     @Test
-    void getAndSyncLiveData_returnsEmptyModel_onException() {
+    void getAndSyncLiveData_returnsEmptyModel_onException() throws Exception {
         when(inverterService.getLiveData()).thenThrow(new RuntimeException("error"));
 
         LiveDataResponse result = syncService.getAndSyncLiveData();

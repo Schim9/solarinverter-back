@@ -22,7 +22,7 @@ public class StatusService {
         var result = new ArrayList<String>();
         LocalDateTime threshold = LocalDateTime.now().minusDays(1);
 
-        commonData.getLastInverterPolling()
+        commonData.getLastScheduledPoll()
                 .filter(t -> t.isBefore(threshold))
                 .map(t -> NO_SYNC_SINCE.getMessage(t.format(DateUtil.FORMAT)))
                 .ifPresent(result::add);
@@ -38,8 +38,12 @@ public class StatusService {
     public List<String> getInfos() {
         var result = new ArrayList<String>();
 
-        commonData.getLastInverterPolling()
-                .map(t -> LAST_INVERTER_POLLING.getMessage(t.format(DateUtil.FORMAT)))
+        commonData.getLastScheduledPoll()
+                .map(t -> LAST_SCHEDULED_POLL.getMessage(t.format(DateUtil.FORMAT)))
+                .ifPresent(result::add);
+
+        commonData.getLastLiveDataPoll()
+                .map(t -> LAST_LIVE_DATA_POLL.getMessage(t.format(DateUtil.FORMAT)))
                 .ifPresent(result::add);
 
         commonData.getLastInverterSyncData()

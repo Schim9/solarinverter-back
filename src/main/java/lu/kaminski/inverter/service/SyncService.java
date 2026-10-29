@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import lu.kaminski.inverter.common.CommonData;
 import lu.kaminski.inverter.config.properties.ContractProperties;
-import lu.kaminski.inverter.dao.DailyProdDAO;
 import lu.kaminski.inverter.model.entity.DailyProdEntity;
 import lu.kaminski.inverter.model.rest.DailyProdResponse;
 import lu.kaminski.inverter.model.rest.LiveDataResponse;
@@ -24,7 +23,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class SyncService {
 
-    private final DailyProdDAO dailyProdDAO;
     private final InverterService inverterService;
     private final NotifUtil notifUtil;
     private final DataService dataService;
@@ -47,9 +45,9 @@ public class SyncService {
         log.info("Checking inverter status");
         try {
             LiveDataResponse liveData = inverterService.getLiveData();
-            commonData.setLastInverterPolling(LocalDateTime.now());
+            commonData.setLastScheduledPoll(LocalDateTime.now());
             // Send a notification in case nothing has been produced
-            if (liveData.getDayProd().equals(BigDecimal.ZERO)) {
+            if (BigDecimal.ZERO.equals(liveData.getDayProd())) {
                 notifUtil.sendPushBulletNotif("Production is near 0", "Solar App ⚠️");
             }
         } catch (Exception e) {
@@ -71,20 +69,19 @@ public class SyncService {
                 DailyProdEntity dpe = new DailyProdEntity();
                 dpe.setDate(LocalDate.parse(p.getDate()));
                 dpe.setValue(p.getValue());
+                return dpe;
+            }).collect(Collectors.toList());
+            dataService.saveAll(result);
+            commonData.setLastInverterSyncData(LocalDateTime.now());
 
-                // Send a notification in case nothing has been produced
+            list.forEach(p -> {
                 if (p.getValue().equals(BigDecimal.ZERO)) {
                     notifUtil.sendPushBulletNotif("No production for " + p.getDate(), "Solar App ⚠️");
                 }
                 if (p.getValue().compareTo(BigDecimal.ONE) < 0) {
                     notifUtil.sendPushBulletNotif("Production is low for " + p.getDate(), "Solar App ️ ⚠️️");
                 }
-
-                return dpe;
-            }).collect(Collectors.toList());
-            dailyProdDAO.saveAll(result);
-            commonData.setLastInverterSyncData(LocalDateTime.now());
-            commonData.setLastInverterPolling(LocalDateTime.now());
+            });
         } catch (Exception e) {
             log.error("Error during sync for dailyProd", e);
             notifUtil.sendPushBulletNotif(e.getMessage(), "Solar App 🚨");
@@ -104,11 +101,9 @@ public class SyncService {
         try {
             // Get live data
             LiveDataResponse liveData = inverterService.getLiveData();
-            commonData.setLastInverterPolling(LocalDateTime.now());
+            commonData.setLastLiveDataPoll(LocalDateTime.now());
             // Get latest data for current day
-            Optional<DailyProdEntity> storedCurrentDayProd = dailyProdDAO.findByDate(LocalDate.now(), LocalDate.now())
-                    .stream()
-                    .findFirst();
+            Optional<DailyProdEntity> storedCurrentDayProd = dataService.findForDate(LocalDate.now());
 
             // If there is some value stored in DB, we compare it to the up to date received data
             storedCurrentDayProd.ifPresent(currentDayProd -> {
@@ -125,7 +120,7 @@ public class SyncService {
                 DailyProdEntity dpe = new DailyProdEntity();
                 dpe.setDate(LocalDate.now());
                 dpe.setValue(upToDateData);
-                dailyProdDAO.save(dpe);
+                dataService.save(dpe);
             }, () -> {
                 // No refreshed data... Return the one retrieved from database in case it exists
                 liveData.setDayProd(
@@ -143,8 +138,7 @@ public class SyncService {
 
             return liveData;
         } catch (Exception e) {
-            log.error("Error while getting livedata", e);
-            notifUtil.sendPushBulletNotif(e.getMessage(), "Solar App 🚨");
+            log.warn("Inverter unreachable during live data request: {}", e.getMessage());
         }
         // In case there is no data, the function returns an empty object
         return new LiveDataResponse();

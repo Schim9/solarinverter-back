@@ -10,11 +10,16 @@ import java.util.Optional;
 @Setter
 public class CommonData {
 
-    private LocalDateTime lastInverterPolling;
-    private LocalDateTime lastInverterSyncData;
+    private volatile LocalDateTime lastScheduledPoll;
+    private volatile LocalDateTime lastLiveDataPoll;
+    private volatile LocalDateTime lastInverterSyncData;
 
-    public Optional<LocalDateTime> getLastInverterPolling() {
-        return Optional.ofNullable(lastInverterPolling);
+    public Optional<LocalDateTime> getLastScheduledPoll() {
+        return Optional.ofNullable(lastScheduledPoll);
+    }
+
+    public Optional<LocalDateTime> getLastLiveDataPoll() {
+        return Optional.ofNullable(lastLiveDataPoll);
     }
 
     public Optional<LocalDateTime> getLastInverterSyncData() {

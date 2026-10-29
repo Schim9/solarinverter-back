@@ -3,6 +3,7 @@ package lu.kaminski.inverter.util;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import lu.kaminski.inverter.config.properties.PushBulletProperties;
+import com.google.gson.Gson;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.utils.URIBuilder;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Component;
 
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import java.util.Map;
 
 @Log4j2
 @Component
@@ -32,9 +34,8 @@ public class NotifUtil {
             HttpPost post = new HttpPost(uri);
             post.addHeader("Access-Token", pushBulletProperties.getApiKey());
             post.addHeader("Content-Type", "application/json");
-            StringEntity params =new StringEntity("{\"body\":\""+message+"\", " +
-                    "\"title\":\"" + title + "\"," +
-                    "\"type\":\"note\"} ", StandardCharsets.UTF_8);
+            String json = new Gson().toJson(Map.of("body", message, "title", title, "type", "note"));
+            StringEntity params = new StringEntity(json, StandardCharsets.UTF_8);
             post.setEntity(params);
             httpClient.execute(post);
         } catch (Exception e) {
