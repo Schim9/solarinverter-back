@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Solar Inverter Statistics</title>
+  <script src="/js/chart.umd.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #f4f7f6;
+      color: #2a2a2a;
+      padding: 24px 16px;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 22px;
+      font-weight: 600;
+      color: #2a2a2a;
+      margin-bottom: 24px;
+    }
+
+    /* ── Stat cards ─────────────────────────────────────────────────────── */
+
+    .stat-grid {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+
+    .stat-card {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      flex: 1;
+      min-width: 130px;
+      background: white;
+      border-radius: 10px;
+      padding: 14px 16px;
+      box-shadow: 0 1px 4px rgba(0,0,0,.07);
+      border-top: 3px solid #e8f7f4;
+      transition: box-shadow .2s;
+    }
+    .stat-card:hover { box-shadow: 0 4px 12px rgba(60,186,159,.15); }
+
+    .stat-card__icon {
+      font-size: 20px;
+      flex-shrink: 0;
+      margin-top: 2px;
+      color: #aaccc8;
+    }
+
+    .stat-card--today { border-top-color: #3cba9f; }
+    .stat-card--today .stat-card__icon { color: #3cba9f; }
+    .stat-card--today .stat-card__value { color: #3cba9f; }
+
+    .stat-card--contract {
+      background: linear-gradient(135deg, #3cba9f 0%, #2da58b 100%);
+      border-top-color: transparent;
+      box-shadow: 0 4px 14px rgba(60,186,159,.35);
+    }
+    .stat-card--contract:hover { box-shadow: 0 6px 20px rgba(60,186,159,.45); }
+    .stat-card--contract .stat-card__icon  { color: rgba(255,255,255,.75); }
+    .stat-card--contract .stat-card__label { color: rgba(255,255,255,.75); }
+    .stat-card--contract .stat-card__date  { color: rgba(255,255,255,.65); }
+    .stat-card--contract .stat-card__value { color: white; }
+
+    .stat-card__body { display: flex; flex-direction: column; gap: 2px; }
+
+    .stat-card__label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: .6px;
+      color: #9ebab6;
+      font-weight: 500;
+    }
+
+    .stat-card__date { font-size: 11px; color: #bbb; }
+
+    .stat-card__value {
+      font-size: 24px;
+      font-weight: 700;
+      color: #2a2a2a;
+      line-height: 1.1;
+      letter-spacing: -.5px;
+    }
+
+    .stat-card__na { font-size: 18px; color: #ddd; margin-top: 4px; }
+
+    /* ── Control bar ─────────────────────────────────────────────────────── */
+
+    .ctrl-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      padding: 12px 16px;
+      background: #f5fafa;
+      border: 1px solid #d4ece8;
+      border-radius: 10px;
+      margin-bottom: 20px;
+    }
+
+    .ctrl-bar__dates {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .ctrl-bar__arrow { color: #aaccc8; font-size: 16px; user-select: none; }
+
+    .date-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      color: #9ebab6;
+      font-weight: 500;
+      display: block;
+      margin-bottom: 2px;
+    }
+
+    .date-input {
+      border: 1px solid #d4ece8;
+      border-radius: 6px;
+      padding: 6px 10px;
+      font-size: 14px;
+      color: #2a2a2a;
+      background: white;
+      outline: none;
+      cursor: pointer;
+    }
+    .date-input:focus { border-color: #3cba9f; box-shadow: 0 0 0 2px rgba(60,186,159,.15); }
+
+    .ctrl-bar__actions { display: flex; gap: 8px; flex-shrink: 0; }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      text-decoration: none;
+    }
+
+    .btn--refresh {
+      background: white;
+      color: #3cba9f;
+      border: 1px solid #3cba9f;
+    }
+    .btn--refresh:hover { background: #f0fbf8; }
+
+    .btn--export {
+      background: #3cba9f;
+      color: white;
+    }
+    .btn--export:hover { background: #2da58b; }
+
+    /* ── Chart ───────────────────────────────────────────────────────────── */
+
+    .chart-wrapper {
+      background: white;
+      border-radius: 10px;
+      padding: 16px;
+      box-shadow: 0 1px 4px rgba(0,0,0,.07);
+    }
+
+    .chart-container {
+      position: relative;
+      width: 100%;
+      height: 40vh;
+      min-height: 200px;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .value-loader {
+      display: block;
+      width: 18px;
+      height: 18px;
+      border: 2px solid #d4ece8;
+      border-top-color: #3cba9f;
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+      margin-top: 4px;
+    }
+
+    .stat-card--contract .value-loader {
+      border-color: rgba(255,255,255,.3);
+      border-top-color: white;
+    }
+
+    @media (max-width: 640px) {
+      .ctrl-bar { flex-direction: column; align-items: stretch; }
+      .ctrl-bar__dates { justify-content: center; }
+      .ctrl-bar__actions { justify-content: center; }
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Solar inverter statistics</h1>
+
+  <!-- ── Stat cards (remplies en JS après chargement de la page) ─────────── -->
+  <div class="stat-grid">
+
+    <div class="stat-card stat-card--today">
+      <span class="stat-card__icon">☀️</span>
+      <div class="stat-card__body">
+        <span class="stat-card__label">Aujourd'hui</span>
+        <span class="value-loader" id="val-day"></span>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <span class="stat-card__icon">📅</span>
+      <div class="stat-card__body">
+        <span class="stat-card__label">7 jours</span>
+        <span class="value-loader" id="val-week"></span>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <span class="stat-card__icon">🗓️</span>
+      <div class="stat-card__body">
+        <span class="stat-card__label">30 jours</span>
+        <span class="value-loader" id="val-month"></span>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <span class="stat-card__icon">📆</span>
+      <div class="stat-card__body">
+        <span class="stat-card__label">Année</span>
+        <span class="value-loader" id="val-year"></span>
+      </div>
+    </div>
+
+    <div class="stat-card stat-card--contract">
+      <span class="stat-card__icon">🧾</span>
+      <div class="stat-card__body">
+        <span class="stat-card__label">Facturable</span>
+        <span class="stat-card__date" id="val-contract-date" style="display:none"></span>
+        <span class="value-loader" id="val-contract"></span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── Control bar ─────────────────────────────────────────────────────── -->
+  <form class="ctrl-bar" method="get" action="/report">
+    <div class="ctrl-bar__dates">
+      <div>
+        <label class="date-label" for="start">Début</label>
+        <input id="start" class="date-input" type="date" name="start"
+               th:value="${startDate}" required/>
+      </div>
+      <span class="ctrl-bar__arrow">→</span>
+      <div>
+        <label class="date-label" for="end">Fin</label>
+        <input id="end" class="date-input" type="date" name="end"
+               th:value="${endDate}" required/>
+      </div>
+    </div>
+    <div class="ctrl-bar__actions">
+      <button type="submit" class="btn btn--refresh">↺ Actualiser</button>
+      <button type="button" class="btn btn--export" id="exportBtn">↓ Exporter</button>
+    </div>
+  </form>
+
+  <!-- ── Chart ───────────────────────────────────────────────────────────── -->
+  <div class="chart-wrapper">
+    <div class="chart-container">
+      <canvas id="prodChart"></canvas>
+    </div>
+  </div>
+
+  <script>
+    // ── Live stats — chargement asynchrone (l'onduleur peut être lent) ──────
+    function setVal(id, value) {
+      const el = document.getElementById(id);
+      el.className = 'stat-card__value';
+      el.textContent = value != null ? value : '—';
+    }
+
+    fetch('/api/livedata')
+      .then(r => r.json())
+      .then(data => {
+        setVal('val-day',      data.dayProd);
+        setVal('val-week',     data.weekProd);
+        setVal('val-month',    data.monthProd);
+        setVal('val-year',     data.yearProd);
+        setVal('val-contract', data.contractProd);
+
+        if (data.contractStartDate) {
+          const [y, m, d] = data.contractStartDate.split('-').map(Number);
+          const formatted = new Date(y, m - 1, d)
+            .toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+          const dateEl = document.getElementById('val-contract-date');
+          dateEl.textContent = 'depuis le ' + formatted;
+          dateEl.style.display = '';
+        }
+      })
+      .catch(() => {
+        ['val-day','val-week','val-month','val-year','val-contract'].forEach(id => {
+          const el = document.getElementById(id);
+          el.className = 'stat-card__na';
+          el.textContent = '—';
+        });
+      });
+  </script>
+
+  <script th:inline="javascript">
+    const labels = /*[[${chartLabels}]]*/ [];
+    const values = /*[[${chartValues}]]*/ [];
+    const exportData = labels.map((d, i) => ({ date: d, prod: values[i] }));
+
+    document.getElementById('exportBtn').addEventListener('click', () => {
+      const start = document.getElementById('start').value;
+      const end   = document.getElementById('end').value;
+      const blob  = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+      const url   = URL.createObjectURL(blob);
+      const a     = document.createElement('a');
+      a.href      = url;
+      a.download  = `production_${start}_${end}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+
+    new Chart(document.getElementById('prodChart'), {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [{
+          data: values,
+          backgroundColor: '#3cba9f',
+          borderRadius: 4,
+          borderSkipped: false
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: ctx => ctx.parsed.y + ' kWh'
+            }
+          }
+        },
+        scales: {
+          x: {
+            grid: { display: false },
+            ticks: { color: '#666', font: { size: 11 } }
+          },
+          y: {
+            grid: { color: '#e0e0e0' },
+            ticks: { color: '#666', font: { size: 11 } }
+          }
+        }
+      }
+    });
+  </script>
+
+</body>
+</html>

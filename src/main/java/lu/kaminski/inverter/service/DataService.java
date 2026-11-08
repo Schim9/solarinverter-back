@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -22,7 +23,16 @@ public class DataService {
 
     public List<DailyProdResponse> getDailyProd(String startDate, String endDate) {
         log.debug("getDailyProd from [" + startDate + "] to [" + endDate + "]");
-        List<DailyProdEntity> records = dailyProdDAO.findByDate(LocalDate.parse(startDate), LocalDate.parse(endDate));
+        LocalDate start;
+        LocalDate end;
+        try {
+            start = LocalDate.parse(startDate);
+            end = LocalDate.parse(endDate);
+        } catch (DateTimeParseException e) {
+            log.error("Invalid date parameter: {}", e.getMessage());
+            throw new IllegalArgumentException("Invalid date format, expected YYYY-MM-DD");
+        }
+        List<DailyProdEntity> records = dailyProdDAO.findByDate(start, end);
         return records.stream().map(r -> DailyProdResponse.builder()
                 .date(r.getDate().toString())
                 .value(r.getValue())

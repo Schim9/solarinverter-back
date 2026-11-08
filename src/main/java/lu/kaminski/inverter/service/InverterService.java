@@ -4,24 +4,16 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import lu.kaminski.inverter.config.properties.InverterProperties;
 import lu.kaminski.inverter.model.rest.DailyProdResponse;
 import lu.kaminski.inverter.model.rest.LiveDataResponse;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.utils.URIBuilder;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.util.EntityUtils;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.ResourceAccessException;
+import org.springframework.web.client.RestClient;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.net.SocketException;
-import java.net.URI;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -29,33 +21,33 @@ import java.util.List;
 
 @Log4j2
 @Component
-@RequiredArgsConstructor
 public class InverterService {
 
     private final InverterProperties inverterProperties;
+    private final RestClient restClient;
+
+    public InverterService(InverterProperties inverterProperties, RestClient.Builder restClientBuilder) {
+        this.inverterProperties = inverterProperties;
+        this.restClient = restClientBuilder
+                .defaultHeader("Authorization", "Basic " + inverterProperties.getToken())
+                .build();
+    }
 
     public LiveDataResponse getLiveData() throws Exception {
         log.debug("getLiveData from [" + LocalDateTime.now() + "]");
-        try (CloseableHttpClient httpClient = HttpClientBuilder.create().build()) {
-            URIBuilder builder = new URIBuilder(inverterProperties.getUrl() + "/v1/livedata");
-            URI uri = builder.build();
-            HttpGet getRequest = new HttpGet(uri);
+        try {
+            String jsonStr = restClient.get()
+                    .uri(inverterProperties.getUrl() + "/v1/livedata")
+                    .retrieve()
+                    .body(String.class);
 
-            getRequest.addHeader("Authorization", "Basic " + inverterProperties.getToken());
-
-            HttpResponse response = httpClient.execute(getRequest);
-            HttpEntity entity = response.getEntity();
             String e0_runtime = "";
             String e0_7D = "";
             String e0_30D = "";
             String e0_1Y = "";
 
-            if (entity != null) {
-                // return it as a String
-                String jsonStr = EntityUtils.toString(entity);
-                // String to JSONObject
+            if (jsonStr != null) {
                 JsonObject jsonResp = new Gson().fromJson(jsonStr, JsonObject.class);
-                // Get the relevant data
                 JsonArray tab = jsonResp.getAsJsonObject(inverterProperties.getDeviceId())
                         .getAsJsonArray("points");
 
@@ -63,11 +55,10 @@ public class InverterService {
                     JsonElement element = tab.get(i);
                     switch (((JsonObject) element).get("name").getAsString()) {
                         case "E0_runtime" -> e0_runtime = ((JsonObject) element).get("value").getAsString();
-                        case "E0_7D" -> e0_7D = ((JsonObject) element).get("value").getAsString();
-                        case "E0_30D" -> e0_30D = ((JsonObject) element).get("value").getAsString();
-                        case "E0_1Y" -> e0_1Y = ((JsonObject) element).get("value").getAsString();
-                        default -> {
-                        }
+                        case "E0_7D"      -> e0_7D      = ((JsonObject) element).get("value").getAsString();
+                        case "E0_30D"     -> e0_30D     = ((JsonObject) element).get("value").getAsString();
+                        case "E0_1Y"      -> e0_1Y      = ((JsonObject) element).get("value").getAsString();
+                        default -> {}
                     }
                 }
             }
@@ -78,8 +69,8 @@ public class InverterService {
                     .monthProd(new BigDecimal(e0_30D).divide(new BigDecimal(1000), RoundingMode.CEILING))
                     .yearProd(new BigDecimal(e0_1Y).divide(new BigDecimal(1000), RoundingMode.CEILING))
                     .build();
-        } catch (SocketException se) {
-            log.warn("Error while reaching inverter", se);
+        } catch (ResourceAccessException e) {
+            log.warn("Error while reaching inverter", e);
             throw new Exception("Inverter connection failed");
         } catch (Exception e) {
             log.error("Error while getting live data", e);
@@ -95,27 +86,21 @@ public class InverterService {
     public List<DailyProdResponse> getDailyProd(String startDate, String endDate) throws Exception {
         log.debug("getDailyProd from [" + startDate + "] to [" + endDate + "]");
         List<DailyProdResponse> myList = new ArrayList<>();
-        try (CloseableHttpClient httpClient = HttpClientBuilder.create().build()) {
-            URIBuilder builder = new URIBuilder(inverterProperties.getUrl() + "/v1/feeds/" +
+        try {
+            String uri = inverterProperties.getUrl() + "/v1/feeds/" +
                     "?client=queryND" +
                     "&feedList[]=E0_runtime" +
                     "&interval=1day" +
                     "&start=" + startDate +
-                    "&end=" + endDate);
-            URI uri = builder.build();
-            HttpGet getRequest = new HttpGet(uri);
+                    "&end=" + endDate;
 
-            getRequest.addHeader("Authorization", "Basic " + inverterProperties.getToken());
+            String jsonStr = restClient.get()
+                    .uri(uri)
+                    .retrieve()
+                    .body(String.class);
 
-
-            HttpResponse response = httpClient.execute(getRequest);
-            HttpEntity entity = response.getEntity();
-            if (entity != null) {
-                // return it as a String
-                String jsonStr = EntityUtils.toString(entity);
-                // String to JSONObject
+            if (jsonStr != null) {
                 JsonObject jsonResp = new Gson().fromJson(jsonStr, JsonObject.class);
-                // Get the relevant data
                 JsonArray tab = jsonResp.getAsJsonObject("feeds")
                         .getAsJsonObject("ser4:" + inverterProperties.getDeviceId())
                         .getAsJsonObject("datastreams")
@@ -125,17 +110,15 @@ public class InverterService {
                 for (int i = 0; i < tab.size(); i++) {
                     JsonElement element = tab.get(i);
                     String timestamp = String.valueOf(((JsonObject) element).get("timestamp"));
-                    String valueStr = String.valueOf(((JsonObject) element).get("value"));
-                    DailyProdResponse prod = DailyProdResponse.builder()
-                            // Convert timestamp to date
+                    String valueStr  = String.valueOf(((JsonObject) element).get("value"));
+                    myList.add(DailyProdResponse.builder()
                             .date(timestamp.substring(1, 11))
                             .value(new BigDecimal(valueStr).divide(new BigDecimal(1000), RoundingMode.CEILING))
-                            .build();
-                    myList.add(prod);
+                            .build());
                 }
             }
-        } catch (SocketException se) {
-            log.error("Error while reaching inverter", se);
+        } catch (ResourceAccessException e) {
+            log.error("Error while reaching inverter", e);
             throw new Exception("Inverter connection failed");
         } catch (Exception e) {
             log.error("Error while getting production data", e);
@@ -143,5 +126,4 @@ public class InverterService {
         }
         return myList;
     }
-
 }

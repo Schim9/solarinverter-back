@@ -5,11 +5,9 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 
-import jakarta.transaction.Transactional;
 import java.time.LocalDate;
 import java.util.List;
 
-@Transactional
 public interface DailyProdDAO extends CrudRepository<DailyProdEntity, LocalDate> {
 
 	@Query("SELECT p FROM DailyProdEntity p " +

@@ -74,14 +74,14 @@ public class SyncService {
             dataService.saveAll(result);
             commonData.setLastInverterSyncData(LocalDateTime.now());
 
-            list.forEach(p -> {
-                if (p.getValue().equals(BigDecimal.ZERO)) {
-                    notifUtil.sendPushBulletNotif("No production for " + p.getDate(), "Solar App ⚠️");
-                }
-                if (p.getValue().compareTo(BigDecimal.ONE) < 0) {
-                    notifUtil.sendPushBulletNotif("Production is low for " + p.getDate(), "Solar App ️ ⚠️️");
-                }
-            });
+            list.stream()
+                    .filter(p -> LocalDate.parse(p.getDate()).equals(LocalDate.now()))
+                    .findFirst()
+                    .ifPresent(today -> {
+                        if (today.getValue().compareTo(BigDecimal.ZERO) == 0) {
+                            notifUtil.sendPushBulletNotif("No production today", "Solar App ⚠️");
+                        }
+                    });
         } catch (Exception e) {
             log.error("Error during sync for dailyProd", e);
             notifUtil.sendPushBulletNotif(e.getMessage(), "Solar App 🚨");
@@ -97,6 +97,13 @@ public class SyncService {
                 : anniversaryThisYear;
     }
 
+    /**
+     * Lit les données temps réel depuis l'onduleur ET persiste la valeur du jour en DB (upsert).
+     *
+     * Note : ce GET a un effet de bord volontaire. L'upsert garantit que le graphe reflète
+     * la production courante sans attendre le scheduler de 17h. Ce choix est préféré à une
+     * séparation lecture/écriture qui imposerait un délai d'affichage côté utilisateur.
+     */
     public LiveDataResponse getAndSyncLiveData() {
         try {
             // Get live data
