@@ -12,7 +12,6 @@ import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Component
 @Log4j2
@@ -36,7 +35,7 @@ public class DataService {
         return records.stream().map(r -> DailyProdResponse.builder()
                 .date(r.getDate().toString())
                 .value(r.getValue())
-                .build()).collect(Collectors.toList());
+                .build()).toList();
     }
 
     public BigDecimal getProductionSince(LocalDate from) {

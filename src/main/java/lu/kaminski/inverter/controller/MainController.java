@@ -3,15 +3,16 @@ package lu.kaminski.inverter.controller;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import lu.kaminski.inverter.model.rest.DailyProdResponse;
-import lu.kaminski.inverter.model.rest.LiveDataResponse;
 import lu.kaminski.inverter.service.DataService;
 import lu.kaminski.inverter.service.StatusService;
 import lu.kaminski.inverter.service.SyncService;
 import lu.kaminski.inverter.util.DateUtil;
-import lu.kaminski.inverter.util.NotifUtil;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
@@ -26,7 +27,6 @@ import static lu.kaminski.inverter.common.Messages.Message.NO_PARAM;
 @RequiredArgsConstructor
 public class MainController {
 
-    private final NotifUtil notifUtil;
     private final DataService dataService;
     private final SyncService syncService;
     private final DateUtil dateUtil;
@@ -48,13 +48,6 @@ public class MainController {
         return ResponseEntity.ok(body);
     }
 
-    @RequestMapping(value = "/inverter-status", method = RequestMethod.GET, produces = "application/json")
-    public ResponseEntity<?> checkInverterStatus() {
-        log.debug("in checkInverterStatus");
-        syncService.checkInverterStatus();
-        return ResponseEntity.ok("check has been triggered");
-    }
-
     /**
      * Return records from database
      */
@@ -62,7 +55,7 @@ public class MainController {
     public ResponseEntity<?> getDailyProd(@RequestParam Map<String, String> customQuery) {
         log.debug("in getDailyProd");
         if (!customQuery.containsKey("start") || !customQuery.containsKey("end")) {
-            // Will return HTTP Code 405
+            // Will return HTTP Code 400
             log.error("Invalid input [start or end are not defined]");
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(NO_PARAM.getMessage());
         }
@@ -75,15 +68,7 @@ public class MainController {
      */
     @RequestMapping(value = "/livedata", method = RequestMethod.GET, produces = "application/json")
     public ResponseEntity<?> getLiveData() {
-
-        try {
-            LiveDataResponse test = syncService.getAndSyncLiveData();
-            return ResponseEntity.ok(test);
-        } catch (Exception e) {
-            log.error("Error while getting livedata", e);
-            notifUtil.sendPushBulletNotif(e.getMessage(), "Solar App 🚨");
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
-        }
+        return ResponseEntity.ok(syncService.getAndSyncLiveData());
     }
 
     /**

@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Solar Inverter Statistics</title>
   <script src="/js/chart.umd.min.js"></script>
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -52,6 +53,10 @@
       flex-shrink: 0;
       margin-top: 2px;
       color: #aaccc8;
+      font-family: 'Material Icons';
+      font-style: normal;
+      line-height: 1;
+      user-select: none;
     }
 
     .stat-card--today { border-top-color: #3cba9f; }
@@ -209,12 +214,15 @@
 <body>
 
   <h1>Solar inverter statistics</h1>
+  <p style="text-align:center; margin-bottom:20px; font-size:13px; color:#9ebab6;">
+    More stats <a href="https://solar57.kaminski.lu/" target="_blank" style="color:#3cba9f;">here</a>
+  </p>
 
   <!-- ── Stat cards (remplies en JS après chargement de la page) ─────────── -->
   <div class="stat-grid">
 
     <div class="stat-card stat-card--today">
-      <span class="stat-card__icon">☀️</span>
+      <span class="stat-card__icon">wb_sunny</span>
       <div class="stat-card__body">
         <span class="stat-card__label">Aujourd'hui</span>
         <span class="value-loader" id="val-day"></span>
@@ -222,7 +230,7 @@
     </div>
 
     <div class="stat-card">
-      <span class="stat-card__icon">📅</span>
+      <span class="stat-card__icon">view_week</span>
       <div class="stat-card__body">
         <span class="stat-card__label">7 jours</span>
         <span class="value-loader" id="val-week"></span>
@@ -230,7 +238,7 @@
     </div>
 
     <div class="stat-card">
-      <span class="stat-card__icon">🗓️</span>
+      <span class="stat-card__icon">calendar_month</span>
       <div class="stat-card__body">
         <span class="stat-card__label">30 jours</span>
         <span class="value-loader" id="val-month"></span>
@@ -238,7 +246,7 @@
     </div>
 
     <div class="stat-card">
-      <span class="stat-card__icon">📆</span>
+      <span class="stat-card__icon">event_note</span>
       <div class="stat-card__body">
         <span class="stat-card__label">Année</span>
         <span class="value-loader" id="val-year"></span>
@@ -246,7 +254,7 @@
     </div>
 
     <div class="stat-card stat-card--contract">
-      <span class="stat-card__icon">🧾</span>
+      <span class="stat-card__icon">receipt_long</span>
       <div class="stat-card__body">
         <span class="stat-card__label">Facturable</span>
         <span class="stat-card__date" id="val-contract-date" style="display:none"></span>

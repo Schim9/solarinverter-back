@@ -78,9 +78,4 @@ class MainControllerTest {
                 .andExpect(status().isOk());
     }
 
-    @Test
-    void checkInverterStatus_returns200() throws Exception {
-        mockMvc.perform(get("/api/inverter-status"))
-                .andExpect(status().isOk());
-    }
 }

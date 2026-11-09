@@ -11,7 +11,7 @@ inverter:
 
 cors:
   allowed-origins:
-    - https://solar-app.kaminski.lu
+    - http://localhost:4200
 
 pushbullet:
   api-key:
@@ -25,4 +25,4 @@ schedule.task:
   syncProductionData: 0 0 17 * * *
   checkInverterStatus: 0 0 14 * * *
 
-logging.level.lu.kaminski: DEBUG
+logging.level.lu.kaminski: INFO

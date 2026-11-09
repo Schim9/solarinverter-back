@@ -1,9 +1,9 @@
 package lu.kaminski.inverter.common;
 
-import com.google.common.collect.ImmutableList;
 import lombok.extern.log4j.Log4j2;
 import lombok.RequiredArgsConstructor;
 import lu.kaminski.inverter.config.properties.CorsProperties;
+import java.util.List;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -25,8 +25,8 @@ public class AppConfig {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
         config.setAllowedOrigins(corsProperties.getAllowedOrigins());
-        config.setAllowedHeaders(ImmutableList.of("*"));
-        config.setAllowedMethods(ImmutableList.of("*"));
+        config.setAllowedHeaders(List.of("*"));
+        config.setAllowedMethods(List.of("*"));
         source.registerCorsConfiguration("/**", config);
         FilterRegistrationBean<?> bean = new FilterRegistrationBean<>(new CorsFilter(source));
         bean.setOrder(Ordered.HIGHEST_PRECEDENCE);

@@ -16,7 +16,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Log4j2
 @Component
@@ -70,7 +69,7 @@ public class SyncService {
                 dpe.setDate(LocalDate.parse(p.getDate()));
                 dpe.setValue(p.getValue());
                 return dpe;
-            }).collect(Collectors.toList());
+            }).toList();
             dataService.saveAll(result);
             commonData.setLastInverterSyncData(LocalDateTime.now());
 
@@ -111,15 +110,6 @@ public class SyncService {
             commonData.setLastLiveDataPoll(LocalDateTime.now());
             // Get latest data for current day
             Optional<DailyProdEntity> storedCurrentDayProd = dataService.findForDate(LocalDate.now());
-
-            // If there is some value stored in DB, we compare it to the up to date received data
-            storedCurrentDayProd.ifPresent(currentDayProd -> {
-                if (Optional.ofNullable(liveData.getDayProd())
-                        .map(p -> p.compareTo(currentDayProd.getValue()) == 0)
-                        .orElse(false)) {
-                    notifUtil.sendPushBulletNotif("Production did not change since last sync.", "Solar App ⚠️");
-                }
-            });
 
             // Process live data
             Optional.ofNullable(liveData.getDayProd()).ifPresentOrElse( upToDateData -> {

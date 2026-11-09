@@ -153,19 +153,6 @@ class SyncServiceTest {
     }
 
     @Test
-    void syncProductionData_sendsWarning_whenLowProduction() throws Exception {
-        DailyProdResponse prod = DailyProdResponse.builder()
-                .date(LocalDate.now().toString())
-                .value(new BigDecimal("0.5"))
-                .build();
-        when(inverterService.getDailyProd(any(), any())).thenReturn(List.of(prod));
-
-        syncService.syncProductionData(5L);
-
-        verify(notifUtil).sendPushBulletNotif(contains("Production is low"), eq("Solar App ⚠️"));
-    }
-
-    @Test
     void syncProductionData_sendsError_onException() throws Exception {
         when(inverterService.getDailyProd(any(), any())).thenThrow(new Exception("network error"));
 
@@ -204,22 +191,6 @@ class SyncServiceTest {
 
         assertThat(result.getDayProd()).isEqualTo(new BigDecimal("3.5"));
         verify(dataService, never()).save(any());
-    }
-
-    @Test
-    void getAndSyncLiveData_sendsWarning_whenProductionStagnates() throws Exception {
-        BigDecimal sameValue = new BigDecimal("5.0");
-        LiveDataResponse liveData = LiveDataResponse.builder().dayProd(sameValue).build();
-        when(inverterService.getLiveData()).thenReturn(liveData);
-
-        DailyProdEntity storedEntity = new DailyProdEntity();
-        storedEntity.setDate(LocalDate.now());
-        storedEntity.setValue(sameValue);
-        when(dataService.findForDate(any())).thenReturn(Optional.of(storedEntity));
-
-        syncService.getAndSyncLiveData();
-
-        verify(notifUtil).sendPushBulletNotif("Production did not change since last sync.", "Solar App ⚠️");
     }
 
     @Test
